@@ -981,29 +981,76 @@ function editIncome(id){
 
   if(!item) return;
 
-  const amount =
-    prompt("金額を入力してください",item.amount);
+  document.getElementById("incomeAmount").value =
+    item.amount;
 
-  if(amount===null) return;
+  document.getElementById("incomeDate").value =
+    item.date;
+
+  document.getElementById("incomeMemo").value =
+    item.memo;
+
+  document.getElementById("incomeForm")
+    .classList.add("show");
+
+  document.getElementById("incomeForm")
+    .scrollIntoView({
+      behavior:"smooth",
+      block:"center"
+    });
+
+  document.getElementById("incomeForm")
+    .dataset.editId = id;
+
+  const button =
+    document.querySelector(".income-submit");
+
+  button.textContent = "変更を保存する";
+
+  button.onclick = function(){
+    updateIncome(id);
+  };
+}
+
+
+/* 収入変更保存 */
+function updateIncome(id){
+
+  const item =
+    data.incomes.find(item=>item.id===id);
+
+  if(!item) return;
+
+  const amount =
+    Number(document.getElementById("incomeAmount").value);
 
   const date =
-    prompt("日付を入力してください（YYYY-MM-DD）",item.date);
-
-  if(date===null) return;
+    document.getElementById("incomeDate").value;
 
   const memo =
-    prompt("メモを入力してください",item.memo);
+    document.getElementById("incomeMemo").value.trim();
 
-  if(memo===null) return;
-
-  if(!amount || Number(amount)<=0){
-    alert("正しい金額を入力してください");
+  if(!amount || amount<=0){
+    alert("金額を入力してください");
     return;
   }
 
-  item.amount = Number(amount);
+  item.amount = amount;
   item.date = date;
   item.memo = memo || "収入";
+
+  document.getElementById("incomeAmount").value="";
+  document.getElementById("incomeMemo").value="";
+
+  document.getElementById("incomeForm")
+    .classList.remove("show");
+
+  const button =
+    document.querySelector(".income-submit");
+
+  button.textContent = "収入を追加する";
+
+  button.onclick = addIncome;
 
   saveData();
 }
@@ -1017,38 +1064,83 @@ function editExpense(id){
 
   if(!item) return;
 
-  const amount =
-    prompt("金額を入力してください",item.amount);
+  document.getElementById("expenseAmount").value =
+    item.amount;
 
-  if(amount===null) return;
+  document.getElementById("category").value =
+    item.category;
+
+  document.getElementById("expenseDate").value =
+    item.date;
+
+  document.getElementById("expenseMemo").value =
+    item.memo;
+
+  document.getElementById("expenseForm")
+    .classList.add("show");
+
+  document.getElementById("expenseForm")
+    .scrollIntoView({
+      behavior:"smooth",
+      block:"center"
+    });
+
+  document.getElementById("expenseForm")
+    .dataset.editId = id;
+
+  const button =
+    document.getElementById("expenseSubmitButton");
+
+  button.textContent = "変更を保存する";
+
+  button.onclick = function(){
+    updateExpense(id);
+  };
+}
+
+
+/* 支出変更保存 */
+function updateExpense(id){
+
+  const item =
+    data.expenses.find(item=>item.id===id);
+
+  if(!item) return;
+
+  const amount =
+    Number(document.getElementById("expenseAmount").value);
 
   const category =
-    prompt(
-      "カテゴリを入力してください\n食費 / 交通費 / 買い物 / 娯楽 / 通信費 / その他",
-      item.category
-    );
-
-  if(category===null) return;
+    document.getElementById("category").value;
 
   const date =
-    prompt("日付を入力してください（YYYY-MM-DD）",item.date);
-
-  if(date===null) return;
+    document.getElementById("expenseDate").value;
 
   const memo =
-    prompt("メモを入力してください",item.memo);
+    document.getElementById("expenseMemo").value.trim();
 
-  if(memo===null) return;
-
-  if(!amount || Number(amount)<=0){
-    alert("正しい金額を入力してください");
+  if(!amount || amount<=0){
+    alert("金額を入力してください");
     return;
   }
 
-  item.amount = Number(amount);
+  item.amount = amount;
   item.category = category;
   item.date = date;
   item.memo = memo;
+
+  document.getElementById("expenseAmount").value="";
+  document.getElementById("expenseMemo").value="";
+
+  document.getElementById("expenseForm")
+    .classList.remove("show");
+
+  const button =
+    document.getElementById("expenseSubmitButton");
+
+  button.textContent = "支出を追加する";
+
+  button.onclick = addExpense;
 
   saveData();
 }
