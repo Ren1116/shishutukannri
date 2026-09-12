@@ -348,6 +348,15 @@ input:focus,select:focus{
   color:var(--expense);
 }
 
+.edit{
+  margin-left:6px;
+  padding:7px 9px;
+  border-radius:9px;
+  background:#eef2ff;
+  color:#4f46e5;
+  font-size:11px;
+}
+  
 .delete{
   margin-left:6px;
   padding:7px 9px;
@@ -879,11 +888,17 @@ function renderHistory(){
             +${yen(item.amount)}
           </div>
 
-          <button
-            class="delete"
-            onclick="deleteIncome(${item.id})">
-            削除
-          </button>
+         <button
+  class="edit"
+  onclick="editIncome(${item.id})">
+  編集
+</button>
+
+<button
+  class="delete"
+  onclick="deleteIncome(${item.id})">
+  削除
+</button>
 
         </div>
         `;
@@ -912,11 +927,17 @@ function renderHistory(){
           -${yen(item.amount)}
         </div>
 
-        <button
-          class="delete"
-          onclick="deleteExpense(${item.id})">
-          削除
-        </button>
+       <button
+  class="edit"
+  onclick="editExpense(${item.id})">
+  編集
+</button>
+
+<button
+  class="delete"
+  onclick="deleteExpense(${item.id})">
+  削除
+</button>
 
       </div>
       `;
@@ -952,7 +973,86 @@ function escapeHtml(text){
     .replace(/'/g,"&#039;");
 }
 
+/* 収入編集 */
+function editIncome(id){
 
+  const item =
+    data.incomes.find(item=>item.id===id);
+
+  if(!item) return;
+
+  const amount =
+    prompt("金額を入力してください",item.amount);
+
+  if(amount===null) return;
+
+  const date =
+    prompt("日付を入力してください（YYYY-MM-DD）",item.date);
+
+  if(date===null) return;
+
+  const memo =
+    prompt("メモを入力してください",item.memo);
+
+  if(memo===null) return;
+
+  if(!amount || Number(amount)<=0){
+    alert("正しい金額を入力してください");
+    return;
+  }
+
+  item.amount = Number(amount);
+  item.date = date;
+  item.memo = memo || "収入";
+
+  saveData();
+}
+
+
+/* 支出編集 */
+function editExpense(id){
+
+  const item =
+    data.expenses.find(item=>item.id===id);
+
+  if(!item) return;
+
+  const amount =
+    prompt("金額を入力してください",item.amount);
+
+  if(amount===null) return;
+
+  const category =
+    prompt(
+      "カテゴリを入力してください\n食費 / 交通費 / 買い物 / 娯楽 / 通信費 / その他",
+      item.category
+    );
+
+  if(category===null) return;
+
+  const date =
+    prompt("日付を入力してください（YYYY-MM-DD）",item.date);
+
+  if(date===null) return;
+
+  const memo =
+    prompt("メモを入力してください",item.memo);
+
+  if(memo===null) return;
+
+  if(!amount || Number(amount)<=0){
+    alert("正しい金額を入力してください");
+    return;
+  }
+
+  item.amount = Number(amount);
+  item.category = category;
+  item.date = date;
+  item.memo = memo;
+
+  saveData();
+}
+  
 /* 入金削除 */
 function deleteIncome(id){
 
