@@ -423,6 +423,16 @@ input:focus,select:focus{
   font-size:13px;
   padding:8px 0 0;
 }
+
+/* カテゴリ絞り込み */
+.filter{
+  margin-bottom:10px;
+}
+
+.filter select{
+  width:100%;
+  background:#f8f8f9;
+}
   
 </style>
 </head>
@@ -547,12 +557,26 @@ input:focus,select:focus{
     </div>
   </div>
 
-  <!-- 履歴 -->
-  <div class="card">
-    <div class="card-title">履歴</div>
-    <div class="history" id="history"></div>
+<!-- 履歴 -->
+<div class="card">
+  <div class="card-title">履歴</div>
+
+  <!-- カテゴリ絞り込み -->
+  <div class="filter">
+    <select id="categoryFilter" onchange="renderHistory()">
+      <option value="すべて">すべて</option>
+      <option value="食費">🍚 食費</option>
+      <option value="交通費">🚃 交通費</option>
+      <option value="買い物">🛍 買い物</option>
+      <option value="娯楽">🎮 娯楽</option>
+      <option value="通信費">📱 通信費</option>
+      <option value="その他">📦 その他</option>
+    </select>
   </div>
 
+  <div class="history" id="history"></div>
+</div>
+  
 <!-- お知らせ -->
 <div class="card">
   <div class="card-title">📢 お知らせ</div>
@@ -786,6 +810,9 @@ function renderHistory(){
   const month =
     document.getElementById("monthSelect").value;
 
+  const filter =
+    document.getElementById("categoryFilter").value;
+
   const incomes =
     data.incomes
       .filter(item=>item.date.startsWith(month))
@@ -797,16 +824,25 @@ function renderHistory(){
   const expenses =
     data.expenses
       .filter(item=>item.date.startsWith(month))
+      .filter(item=>{
+        return filter==="すべて" || item.category===filter;
+      })
       .map(item=>({
         ...item,
         type:"expense"
       }));
 
-  const history =
-    [...incomes,...expenses]
-      .sort((a,b)=>{
-        return new Date(b.date)-new Date(a.date);
-      });
+  let history;
+
+  if(filter==="すべて"){
+    history = [...incomes,...expenses];
+  }else{
+    history = expenses;
+  }
+
+  history.sort((a,b)=>{
+    return new Date(b.date)-new Date(a.date);
+  });
 
   const container =
     document.getElementById("history");
@@ -814,7 +850,7 @@ function renderHistory(){
   if(history.length===0){
 
     container.innerHTML =
-      `<div class="empty">この月の履歴はありません</div>`;
+      `<div class="empty">該当する履歴はありません</div>`;
 
     return;
   }
