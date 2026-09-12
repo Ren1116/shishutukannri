@@ -1630,7 +1630,7 @@ function toggleDarkMode(){
 ========================= */
 
 function changeTheme(color){
-  document.documentElement.style.setProperty("--accent", color);
+  document.documentElement.style.setProperty("--bg", color);
   localStorage.setItem("themeColor", color);
 }
 
@@ -1642,7 +1642,7 @@ function changeTheme(color){
 const savedTheme = localStorage.getItem("themeColor");
 
 if(savedTheme){
-  document.documentElement.style.setProperty("--accent", savedTheme);
+  document.documentElement.style.setProperty("--bg", savedTheme);
 
   const themeInput = document.getElementById("themeColor");
 
