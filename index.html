@@ -442,6 +442,112 @@ input:focus,select:focus{
   width:100%;
   background:#f8f8f9;
 }
+
+/* ヘッダー */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    text-align: left;
+}
+
+.settings-button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin: 0;
+    border-radius: 12px;
+    background: white;
+    color: #333;
+    font-size: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* メニュー */
+.menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+}
+
+.menu-overlay.show {
+    display: block;
+}
+
+.menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(340px, 88%);
+    height: 100%;
+    background: #f5f6f8;
+    padding: 24px 20px;
+    overflow-y: auto;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.12);
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.menu-header h2 {
+    margin: 0;
+}
+
+.menu-close {
+    width: 42px;
+    height: 42px;
+    margin: 0;
+    padding: 0;
+    border-radius: 10px;
+    background: white;
+    color: #333;
+    font-size: 22px;
+}
+
+.menu-section {
+    background: white;
+    border-radius: 16px;
+    padding: 6px 16px;
+    margin-bottom: 16px;
+}
+
+.menu-section-title {
+    font-size: 13px;
+    color: #888;
+    padding: 12px 0 6px;
+}
+
+.menu-item {
+    width: 100%;
+    margin: 0;
+    padding: 15px 0;
+    background: transparent;
+    color: #222;
+    text-align: left;
+    border-radius: 0;
+    border-bottom: 1px solid #eee;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item.danger {
+    color: #e53935;
+}
+
+
   
 </style>
 </head>
@@ -450,10 +556,10 @@ input:focus,select:focus{
 
 <div class="app">
 
-  <div class="header">
-    <div class="logo">シンプル<span>お金管理</span></div>
-    <button class="settings" onclick="scrollToData()">⚙</button>
-  </div>
+<div class="header">
+  <div class="logo">シンプル<span>お金管理</span></div>
+  <button class="settings" onclick="openMenu()">⚙</button>
+</div>
 
   <!-- 残高 -->
   <div class="balance-card">
@@ -598,18 +704,58 @@ input:focus,select:focus{
 </div>
 
 
-  <!-- データ管理 -->
-  <div class="card" id="dataCard">
+ <!-- メニュー画面 -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu(event)">
+  <div class="menu" onclick="event.stopPropagation()">
 
-    <div class="card-title">データ管理</div>
+    <div class="menu-header">
+      <h2>メニュー</h2>
+      <button class="menu-close" onclick="closeMenu()">✕</button>
+    </div>
 
-    <div class="data-buttons">
-      <button onclick="backupData()">バックアップ</button>
+    <!-- データ管理 -->
+    <div class="menu-section">
+      <h3>データ管理</h3>
 
-      <button onclick="document.getElementById('restoreFile').click()">
-        データを復元
+      <button class="menu-item" onclick="backupData()">
+        <span>💾</span>
+        <span>データをバックアップ</span>
+      </button>
+
+      <button class="menu-item" onclick="document.getElementById('restoreFile').click()">
+        <span>📂</span>
+        <span>データを復元</span>
+      </button>
+
+      <button class="menu-item danger" onclick="clearAll()">
+        <span>🗑️</span>
+        <span>すべてのデータを削除</span>
       </button>
     </div>
+
+    <!-- 表示 -->
+    <div class="menu-section">
+      <h3>表示</h3>
+
+      <button class="menu-item" onclick="toggleDarkMode()">
+        <span>🌙</span>
+        <span>ダークモード</span>
+      </button>
+
+      <div class="menu-item theme-item">
+        <span>🎨</span>
+        <span>テーマカラー</span>
+        <input
+          type="color"
+          id="themeColor"
+          value="#1677ff"
+          onchange="changeTheme(this.value)"
+        >
+      </div>
+    </div>
+
+  </div>
+</div>
 
     <input
       type="file"
