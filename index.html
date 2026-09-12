@@ -362,17 +362,6 @@ input:focus,select:focus{
   font-size:13px;
 }
 
-<!-- お知らせ -->
-<div class="card">
-  <div class="card-title">📢 お知らせ</div>
-
-  <div class="notice-list">
-    <div class="notice-empty">
-      現在、お知らせはありません。
-    </div>
-  </div>
-</div>
-  
 /* データ管理 */
 .data-buttons{
   display:grid;
@@ -420,6 +409,19 @@ input:focus,select:focus{
     padding:17px;
   }
 }
+
+/* お知らせ */
+.notice-list{
+  display:flex;
+  flex-direction:column;
+}
+
+.notice-empty{
+  color:var(--sub);
+  font-size:13px;
+  padding:8px 0 0;
+}
+  
 </style>
 </head>
 
