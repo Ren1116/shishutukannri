@@ -767,6 +767,105 @@ body.dark .filter-select{
 .chart-total strong{
   font-size:16px;
 }
+
+/* =========================
+   月別集計
+========================= */
+
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.summary-item{
+  background:var(--bg);
+  border-radius:12px;
+  padding:14px 10px;
+  text-align:center;
+}
+
+.summary-label{
+  color:var(--sub);
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+.summary-value{
+  font-size:17px;
+  font-weight:700;
+}
+
+.income-text{
+  color:var(--income);
+}
+
+.expense-text{
+  color:var(--expense);
+}
+
+.summary-balance{
+  border:1px solid var(--line);
+}
+
+.summary-category-title{
+  margin-top:22px;
+  margin-bottom:12px;
+  font-size:13px;
+  font-weight:700;
+}
+
+.monthly-category-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.monthly-category-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+}
+
+.monthly-category-row:last-child{
+  border-bottom:none;
+}
+
+.monthly-category-name{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.monthly-category-amount{
+  font-weight:700;
+}
+
+.monthly-category-empty{
+  text-align:center;
+  color:var(--sub);
+  font-size:13px;
+  padding:10px 0;
+}
+
+@media (max-width:600px){
+
+  .summary-grid{
+    gap:7px;
+  }
+
+  .summary-item{
+    padding:12px 6px;
+  }
+
+  .summary-value{
+    font-size:15px;
+  }
+
+}
   
 </style>
 </head>
@@ -880,6 +979,44 @@ body.dark .filter-select{
     </div>
   </div>
 
+<!-- 月別集計 -->
+<div class="card" id="monthlySummaryCard">
+
+  <div class="card-title">📅 月別の集計</div>
+
+  <div class="summary-grid">
+
+    <div class="summary-item">
+      <div class="summary-label">収入</div>
+      <div class="summary-value income-text" id="monthlyIncome">
+        ¥0
+      </div>
+    </div>
+
+    <div class="summary-item">
+      <div class="summary-label">支出</div>
+      <div class="summary-value expense-text" id="monthlyExpense">
+        ¥0
+      </div>
+    </div>
+
+    <div class="summary-item summary-balance">
+      <div class="summary-label">収支</div>
+      <div class="summary-value" id="monthlyBalance">
+        ¥0
+      </div>
+    </div>
+
+  </div>
+
+  <div class="summary-category-title">
+    カテゴリー別支出
+  </div>
+
+  <div id="monthlyCategorySummary"></div>
+
+</div>
+  
 <!-- 支出グラフ -->
 <div class="card" id="expenseChartCard">
 
@@ -1183,6 +1320,123 @@ renderHistory();
 renderExpenseChart();
 }
 
+/* =========================
+   月別集計
+========================= */
+
+function renderMonthlySummary(){
+
+  const month =
+    document.getElementById("monthSelect").value;
+
+  /* 月別の収入 */
+  const monthlyIncome =
+    data.incomes
+      .filter(item => item.date.startsWith(month))
+      .reduce((sum,item) => {
+        return sum + Number(item.amount);
+      },0);
+
+  /* 月別の支出 */
+  const monthlyExpense =
+    data.expenses
+      .filter(item => item.date.startsWith(month))
+      .reduce((sum,item) => {
+        return sum + Number(item.amount);
+      },0);
+
+  /* 収支 */
+  const monthlyBalance =
+    monthlyIncome - monthlyExpense;
+
+  /* 表示 */
+  document.getElementById("monthlyIncome").textContent =
+    yen(monthlyIncome);
+
+  document.getElementById("monthlyExpense").textContent =
+    yen(monthlyExpense);
+
+  const balanceElement =
+    document.getElementById("monthlyBalance");
+
+  balanceElement.textContent =
+    yen(monthlyBalance);
+
+  /* 収支の色 */
+  if(monthlyBalance >= 0){
+    balanceElement.style.color = "var(--income)";
+  }else{
+    balanceElement.style.color = "var(--expense)";
+  }
+
+  /* =========================
+     カテゴリー別支出
+  ========================= */
+
+  const categories = {
+    "食費":0,
+    "交通費":0,
+    "買い物":0,
+    "娯楽":0,
+    "通信費":0,
+    "その他":0
+  };
+
+  data.expenses
+    .filter(item => item.date.startsWith(month))
+    .forEach(item => {
+
+      if(categories[item.category] !== undefined){
+        categories[item.category] += Number(item.amount);
+      }
+
+    });
+
+  const sortedCategories =
+    Object.entries(categories)
+      .filter(([category,amount]) => amount > 0)
+      .sort((a,b) => b[1] - a[1]);
+
+  const container =
+    document.getElementById("monthlyCategorySummary");
+
+  if(sortedCategories.length === 0){
+
+    container.innerHTML = `
+      <div class="monthly-category-empty">
+        この月の支出はありません
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = `
+
+    <div class="monthly-category-list">
+
+      ${sortedCategories.map(([category,amount]) => `
+
+        <div class="monthly-category-row">
+
+          <div class="monthly-category-name">
+            ${getCategoryIcon(category)}
+            ${category}
+          </div>
+
+          <div class="monthly-category-amount">
+            ${yen(amount)}
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+  `;
+}
+  
 /* =========================
    支出グラフ
 ========================= */
