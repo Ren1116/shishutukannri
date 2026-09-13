@@ -3643,6 +3643,11 @@ function renderHistory(){
   const filter =
     document.getElementById("categoryFilter").value;
 
+
+  /* =========================
+     収入
+  ========================= */
+
   const incomes =
     data.incomes
       .filter(item=>item.date.startsWith(month))
@@ -3650,6 +3655,11 @@ function renderHistory(){
         ...item,
         type:"income"
       }));
+
+
+  /* =========================
+     通常の支出
+  ========================= */
 
   const expenses =
     data.expenses
@@ -3662,20 +3672,104 @@ function renderHistory(){
         type:"expense"
       }));
 
+
+  /* =========================
+     固定費
+  ========================= */
+
+  const fixedExpenses =
+    data.fixedExpenses
+      .filter(item=>{
+
+        return item.active !== false &&
+               item.startMonth <= month &&
+               (filter==="すべて" || item.category===filter);
+
+      })
+      .map(item=>{
+
+        /* 選択した月の支払日を作る */
+
+        const year =
+          Number(month.slice(0,4));
+
+        const monthNumber =
+          Number(month.slice(5,7));
+
+        /* 月末を超えないようにする */
+
+        const lastDay =
+          new Date(
+            year,
+            monthNumber,
+            0
+          ).getDate();
+
+        const day =
+          Math.min(
+            Number(item.day),
+            lastDay
+          );
+
+        const date =
+          `${month}-${String(day).padStart(2,"0")}`;
+
+        return {
+
+          ...item,
+
+          date:date,
+
+          type:"fixed"
+
+        };
+
+      });
+
+
+  /* =========================
+     履歴をまとめる
+  ========================= */
+
   let history;
 
   if(filter==="すべて"){
-    history = [...incomes,...expenses];
+
+    history = [
+      ...incomes,
+      ...expenses,
+      ...fixedExpenses
+    ];
+
   }else{
-    history = expenses;
+
+    history = [
+      ...expenses,
+      ...fixedExpenses
+    ];
+
   }
 
+
+  /* =========================
+     日付順
+  ========================= */
+
   history.sort((a,b)=>{
-    return new Date(b.date)-new Date(a.date);
+
+    return new Date(b.date) -
+           new Date(a.date);
+
   });
+
 
   const container =
     document.getElementById("history");
+
+
+  /* =========================
+     履歴なし
+  ========================= */
 
   if(history.length===0){
 
@@ -3683,19 +3777,33 @@ function renderHistory(){
       `<div class="empty">該当する履歴はありません</div>`;
 
     return;
+
   }
+
+
+  /* =========================
+     表示
+  ========================= */
 
   container.innerHTML =
     history.map(item=>{
+
+
+      /* =========================
+         収入
+      ========================= */
 
       if(item.type==="income"){
 
         return `
         <div class="history-item">
 
-          <div class="history-icon">＋</div>
+          <div class="history-icon">
+            ＋
+          </div>
 
           <div class="history-info">
+
             <div class="history-name">
               ${escapeHtml(item.memo)}
             </div>
@@ -3703,28 +3811,77 @@ function renderHistory(){
             <div class="history-date">
               ${item.date}
             </div>
+
           </div>
 
           <div class="history-amount income">
             +${yen(item.amount)}
           </div>
 
-         <button
-  class="edit"
-  onclick="editIncome(${item.id})">
-  編集
-</button>
+          <button
+            class="edit"
+            onclick="editIncome(${item.id})">
+            編集
+          </button>
 
-<button
-  class="delete"
-  onclick="deleteIncome(${item.id})">
-  削除
-</button>
+          <button
+            class="delete"
+            onclick="deleteIncome(${item.id})">
+            削除
+          </button>
 
         </div>
         `;
 
       }
+
+
+      /* =========================
+         固定費
+      ========================= */
+
+      if(item.type==="fixed"){
+
+        return `
+        <div class="history-item">
+
+          <div class="history-icon">
+            ${getCategoryIcon(item.category)}
+          </div>
+
+          <div class="history-info">
+
+            <div class="history-name">
+              ${escapeHtml(item.name)}
+              <span style="
+                font-size:10px;
+                color:var(--sub);
+                margin-left:5px;
+              ">
+                固定費
+              </span>
+            </div>
+
+            <div class="history-date">
+              ${item.date}
+              ・${escapeHtml(item.category)}
+            </div>
+
+          </div>
+
+          <div class="history-amount expense">
+            -${yen(item.amount)}
+          </div>
+
+        </div>
+        `;
+
+      }
+
+
+      /* =========================
+         通常の支出
+      ========================= */
 
       return `
       <div class="history-item">
@@ -3734,6 +3891,7 @@ function renderHistory(){
         </div>
 
         <div class="history-info">
+
           <div class="history-name">
             ${escapeHtml(item.category)}
           </div>
@@ -3742,30 +3900,31 @@ function renderHistory(){
             ${item.date}
             ${item.memo ? " · "+escapeHtml(item.memo) : ""}
           </div>
+
         </div>
 
         <div class="history-amount expense">
           -${yen(item.amount)}
         </div>
 
-       <button
-  class="edit"
-  onclick="editExpense(${item.id})">
-  編集
-</button>
+        <button
+          class="edit"
+          onclick="editExpense(${item.id})">
+          編集
+        </button>
 
-<button
-  class="delete"
-  onclick="deleteExpense(${item.id})">
-  削除
-</button>
+        <button
+          class="delete"
+          onclick="deleteExpense(${item.id})">
+          削除
+        </button>
 
       </div>
       `;
 
     }).join("");
-}
 
+}
 
 /* カテゴリアイコン */
 function getCategoryIcon(category){
