@@ -1001,14 +1001,7 @@ body.dark .filter-select{
     <input type="number" id="expenseAmount" placeholder="例：1000" min="1">
 
     <label>カテゴリ</label>
-    <select id="category">
-      <option value="食費">🍚 食費</option>
-      <option value="交通費">🚃 交通費</option>
-      <option value="買い物">🛍 買い物</option>
-      <option value="娯楽">🎮 娯楽</option>
-      <option value="通信費">📱 通信費</option>
-      <option value="その他">📦 その他</option>
-    </select>
+    <select id="category" data-category-select></select>
 
     <label>日付</label>
     <input type="date" id="expenseDate">
@@ -1105,17 +1098,11 @@ body.dark .filter-select{
   <div class="card-title">履歴</div>
 
   <!-- カテゴリ絞り込み -->
-  <div class="filter">
-    <select id="categoryFilter" onchange="renderHistory()">
-      <option value="すべて">すべて</option>
-      <option value="食費">🍚 食費</option>
-      <option value="交通費">🚃 交通費</option>
-      <option value="買い物">🛍 買い物</option>
-      <option value="娯楽">🎮 娯楽</option>
-      <option value="通信費">📱 通信費</option>
-      <option value="その他">📦 その他</option>
-    </select>
-  </div>
+ <div class="filter">
+  <select id="categoryFilter" onchange="renderHistory()">
+    <option value="すべて">すべて</option>
+  </select>
+</div>
 
   <div class="history" id="history"></div>
 </div>
@@ -1173,14 +1160,7 @@ body.dark .filter-select{
       >
 
       <label>カテゴリー</label>
-      <select id="fixedCategory">
-        <option value="食費">🍚 食費</option>
-        <option value="交通費">🚃 交通費</option>
-        <option value="買い物">🛍 買い物</option>
-        <option value="娯楽">🎮 娯楽</option>
-        <option value="通信費">📱 通信費</option>
-        <option value="その他">📦 その他</option>
-      </select>
+     <select id="fixedCategory" data-category-select></select>
 
       <label>支払日</label>
       <input
@@ -1210,6 +1190,23 @@ body.dark .filter-select{
     <div id="fixedList"></div>
 
   </div>
+
+</div>
+
+<!-- カテゴリ管理 -->
+<div class="menu-section">
+
+  <h3>カテゴリ</h3>
+
+  <div id="categorySettings"></div>
+
+  <button
+    class="menu-item"
+    onclick="addCategory()"
+  >
+    <span>＋</span>
+    <span>カテゴリを追加</span>
+  </button>
 
 </div>
     
@@ -1277,6 +1274,23 @@ let data = JSON.parse(
 
 if(!Array.isArray(data.fixedExpenses)){
   data.fixedExpenses = [];
+}
+
+/* =========================
+   カテゴリ
+========================= */
+
+const defaultCategories = [
+  "食費",
+  "交通費",
+  "買い物",
+  "娯楽",
+  "通信費",
+  "その他"
+];
+
+if(!Array.isArray(data.categories)){
+  data.categories = [...defaultCategories];
 }
 
 const today = new Date();
@@ -1685,7 +1699,7 @@ const month =
 
       div.innerHTML = `
   <div class="monthly-category-name">
-    ${getCategoryIcon(category)}
+    ${(category)}
     ${escapeHtml(category)}
   </div>
   <div class="monthly-category-amount">
@@ -2144,16 +2158,208 @@ function renderHistory(){
 }
 
 /* カテゴリアイコン */
-function getCategoryIcon(category){
+function renderCategorySelects(){
+  const selects = document.querySelectorAll("[data-category-select]");
 
-  const icons = {
-    "食費":"🍚",
-    "交通費":"🚃",
-    "買い物":"🛍",
-    "娯楽":"🎮",
-    "通信費":"📱",
-    "その他":"📦"
-  };
+  selects.forEach(select => {
+    const currentValue = select.value;
+
+    select.innerHTML = "";
+
+    data.categories.forEach(category => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = getCategoryIcon(category) + " " + category;
+      select.appendChild(option);
+    });
+
+    if(data.categories.includes(currentValue)){
+      select.value = currentValue;
+    }
+  });
+
+  const filter = document.getElementById("categoryFilter");
+
+  if(filter){
+    const currentFilter = filter.value;
+
+    filter.innerHTML = `<option value="すべて">すべて</option>`;
+
+    data.categories.forEach(category => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = getCategoryIcon(category) + " " + category;
+      filter.appendChild(option);
+    });
+
+    if(currentFilter === "すべて" || data.categories.includes(currentFilter)){
+      filter.value = currentFilter;
+    }else{
+      filter.value = "すべて";
+    }
+  }
+}
+
+
+function renderCategorySettings(){
+  const container = document.getElementById("categorySettings");
+
+  if(!container) return;
+
+  container.innerHTML = "";
+
+  data.categories.forEach((category,index) => {
+
+    const row = document.createElement("div");
+
+    row.className = "category-setting-row";
+
+    row.innerHTML = `
+      <div class="category-setting-name">
+        ${getCategoryIcon(category)}
+        ${escapeHtml(category)}
+      </div>
+
+      <div class="category-setting-buttons">
+        <button onclick="renameCategory(${index})">
+          変更
+        </button>
+
+        <button
+          class="category-delete"
+          onclick="deleteCategory(${index})">
+          削除
+        </button>
+      </div>
+    `;
+
+    container.appendChild(row);
+  });
+}
+
+
+function addCategory(){
+
+  const name = prompt("追加するカテゴリ名を入力してください");
+
+  if(name === null) return;
+
+  const newName = name.trim();
+
+  if(!newName){
+    alert("カテゴリ名を入力してください");
+    return;
+  }
+
+  if(data.categories.includes(newName)){
+    alert("同じカテゴリがすでにあります");
+    return;
+  }
+
+  data.categories.push(newName);
+
+  saveData();
+
+  renderCategorySettings();
+  renderCategorySelects();
+
+  alert("カテゴリを追加しました");
+}
+
+
+function renameCategory(index){
+
+  const oldName = data.categories[index];
+
+  const newName = prompt(
+    "新しいカテゴリ名を入力してください",
+    oldName
+  );
+
+  if(newName === null) return;
+
+  const trimmedName = newName.trim();
+
+  if(!trimmedName){
+    alert("カテゴリ名を入力してください");
+    return;
+  }
+
+  if(
+    data.categories.some(
+      (category,i) =>
+        i !== index && category === trimmedName
+    )
+  ){
+    alert("同じカテゴリがすでにあります");
+    return;
+  }
+
+  data.categories[index] = trimmedName;
+
+  data.expenses.forEach(item => {
+    if(item.category === oldName){
+      item.category = trimmedName;
+    }
+  });
+
+  data.fixedExpenses.forEach(item => {
+    if(item.category === oldName){
+      item.category = trimmedName;
+    }
+  });
+
+  saveData();
+
+  renderCategorySettings();
+  renderCategorySelects();
+
+  alert("カテゴリ名を変更しました");
+}
+
+
+function deleteCategory(index){
+
+  const category = data.categories[index];
+
+  const usedInExpenses =
+    data.expenses.some(
+      item => item.category === category
+    );
+
+  const usedInFixedExpenses =
+    data.fixedExpenses.some(
+      item => item.category === category
+    );
+
+  if(usedInExpenses || usedInFixedExpenses){
+
+    alert(
+      "このカテゴリは支出または固定費で使用されています。\n" +
+      "先に該当するデータのカテゴリを変更してください。"
+    );
+
+    return;
+  }
+
+  if(data.categories.length <= 1){
+
+    alert("カテゴリは最低1つ必要です。");
+
+    return;
+  }
+
+  if(!confirm(`「${category}」を削除しますか？`)){
+    return;
+  }
+
+  data.categories.splice(index,1);
+
+  saveData();
+
+  renderCategorySettings();
+  renderCategorySelects();
+}
 
   return icons[category] || "📦";
 }
