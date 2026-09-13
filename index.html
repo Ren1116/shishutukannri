@@ -1664,33 +1664,85 @@ function renderExpenseChart(){
   const month =
     document.getElementById("monthSelect").value;
 
-  const totals = {
+
+  /* =========================
+     カテゴリー
+  ========================= */
+
+  const categories = {
+
     "食費":0,
     "交通費":0,
     "買い物":0,
     "娯楽":0,
     "通信費":0,
     "その他":0
+
   };
+
+
+  /* =========================
+     通常の支出
+  ========================= */
 
   data.expenses
     .filter(item => item.date.startsWith(month))
     .forEach(item => {
 
-      if(totals[item.category] !== undefined){
-        totals[item.category] += Number(item.amount);
+      if(categories[item.category] !== undefined){
+
+        categories[item.category] +=
+          Number(item.amount);
+
       }
 
     });
 
-  const total =
-    Object.values(totals)
-      .reduce((sum,value) => sum + value,0);
+
+  /* =========================
+     固定費
+     ・ONのものだけ
+     ・開始月以降だけ
+  ========================= */
+
+  data.fixedExpenses
+    .filter(item => {
+
+      return item.active !== false &&
+             item.startMonth <= month;
+
+    })
+    .forEach(item => {
+
+      if(categories[item.category] !== undefined){
+
+        categories[item.category] +=
+          Number(item.amount);
+
+      }
+
+    });
+
+
+  /* =========================
+     金額の大きい順
+  ========================= */
+
+  const sortedCategories =
+    Object.entries(categories)
+      .filter(([category,amount]) => amount > 0)
+      .sort((a,b) => b[1] - a[1]);
+
 
   const container =
     document.getElementById("expenseChart");
 
-  if(!total){
+
+  /* =========================
+     支出なし
+  ========================= */
+
+  if(sortedCategories.length === 0){
 
     container.innerHTML = `
       <div class="chart-empty">
@@ -1701,54 +1753,60 @@ function renderExpenseChart(){
     return;
   }
 
-  const max =
-    Math.max(...Object.values(totals));
 
-  const sorted =
-    Object.entries(totals)
-      .filter(([category,amount]) => amount > 0)
-      .sort((a,b) => b[1] - a[1]);
+  /* =========================
+     最大金額
+  ========================= */
+
+  const maxAmount =
+    sortedCategories[0][1];
+
+
+  /* =========================
+     グラフ表示
+  ========================= */
 
   container.innerHTML = `
 
     <div class="chart-list">
 
-      ${sorted.map(([category,amount]) => `
+      ${sortedCategories.map(([category,amount]) => {
 
-        <div class="chart-row">
+        const width =
+          (amount / maxAmount) * 100;
 
-          <div class="chart-label">
-            ${getCategoryIcon(category)} ${category}
+        return `
+
+          <div class="chart-row">
+
+            <div class="chart-label">
+              ${getCategoryIcon(category)}
+              ${category}
+            </div>
+
+            <div class="chart-bar-bg">
+
+              <div
+                class="chart-bar"
+                style="width:${width}%"
+              ></div>
+
+            </div>
+
+            <div class="chart-amount">
+              ${yen(amount)}
+            </div>
+
           </div>
 
-          <div class="chart-bar-bg">
-            <div
-              class="chart-bar"
-              style="width:${(amount / max) * 100}%"
-            ></div>
-          </div>
+        `;
 
-          <div class="chart-amount">
-            ${yen(amount)}
-          </div>
-
-        </div>
-
-      `).join("")}
-
-    </div>
-
-    <div class="chart-total">
-
-      <span>今月の支出合計</span>
-
-      <strong>
-        ${yen(total)}
-      </strong>
+      }).join("")}
 
     </div>
 
   `;
+
 }
   
 
