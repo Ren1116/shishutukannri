@@ -2193,8 +2193,39 @@ function renderHistory(){
 
 }
 
+```js
 /* カテゴリアイコン */
 function getCategoryIcon(category){
+
+  const icons = {
+    "食費":"🍚",
+    "交通費":"🚃",
+    "買い物":"🛍️",
+    "娯楽":"🎮",
+    "通信費":"📱",
+    "その他":"📦",
+
+    "旅行":"✈️",
+    "美容":"💄",
+    "ゲーム":"🎮",
+    "趣味":"🎨",
+    "筋トレ":"🏋️",
+    "スポーツ":"⚽",
+    "映画":"🎬",
+    "音楽":"🎵",
+    "本":"📚",
+    "勉強":"📖",
+    "家賃":"🏠",
+    "光熱費":"💡",
+    "医療":"🏥",
+    "プレゼント":"🎁"
+  };
+
+  return icons[category] || "🏷️";
+}
+
+
+/* カテゴリ選択欄 */
 function renderCategorySelects(){
 
   const selects =
@@ -2225,6 +2256,9 @@ function renderCategorySelects(){
     }
 
   });
+
+
+  /* 履歴のカテゴリ絞り込み */
 
   const filter =
     document.getElementById("categoryFilter");
@@ -2259,33 +2293,11 @@ function renderCategorySelects(){
     }
 
   }
-}
-  const icons = {
-    "食費":"🍚",
-    "交通費":"🚃",
-    "買い物":"🛍️",
-    "娯楽":"🎮",
-    "通信費":"📱",
-    "その他":"📦",
 
-    "旅行":"✈️",
-    "美容":"💄",
-    "ゲーム":"🎮",
-    "趣味":"🎨",
-    "筋トレ":"🏋️",
-    "スポーツ":"⚽",
-    "映画":"🎬",
-    "音楽":"🎵",
-    "本":"📚",
-    "勉強":"📖",
-    "家賃":"🏠",
-    "光熱費":"💡",
-    "医療":"🏥",
-    "プレゼント":"🎁"
-  };
-
-  return icons[category] || "🏷️";
 }
+
+
+/* カテゴリ設定画面 */
 
 function renderCategorySettings(){
 
@@ -2356,13 +2368,18 @@ function renderCategorySettings(){
 
 }
 
+
+/* カテゴリ追加 */
+
 function addCategory(){
 
-  const name = prompt("追加するカテゴリ名を入力してください");
+  const name =
+    prompt("追加するカテゴリ名を入力してください");
 
   if(name === null) return;
 
-  const newName = name.trim();
+  const newName =
+    name.trim();
 
   if(!newName){
     alert("カテゴリ名を入力してください");
@@ -2385,48 +2402,54 @@ function addCategory(){
 }
 
 
-function deleteCategory(index){
+/* カテゴリ名変更 */
 
-  const category = data.categories[index];
+function renameCategory(index){
 
-  if(!category){
+  const oldName =
+    data.categories[index];
+
+  if(!oldName){
     return;
   }
 
-  if(defaultCategories.includes(category)){
-    alert("初期カテゴリは削除できません。");
+  if(defaultCategories.includes(oldName)){
+    alert("初期カテゴリは変更できません。");
     return;
   }
 
-  const usedInExpenses =
-    data.expenses.some(item => item.category === category);
-
-  const usedInFixedExpenses =
-    data.fixedExpenses.some(item => item.category === category);
-
-  if(usedInExpenses || usedInFixedExpenses){
-    alert(
-      "このカテゴリは支出または固定費で使用されています。\n" +
-      "先に該当するデータのカテゴリを変更してください。"
+  const name =
+    prompt(
+      "新しいカテゴリ名を入力してください",
+      oldName
     );
+
+  if(name === null){
     return;
   }
 
-  if(!confirm(`「${category}」を削除しますか？`)){
+  const trimmedName =
+    name.trim();
+
+  if(!trimmedName){
+    alert("カテゴリ名を入力してください");
     return;
   }
 
-  data.categories.splice(index, 1);
-
-  saveData();
-  renderCategorySettings();
-  renderCategorySelects();
-}
+  if(
+    trimmedName !== oldName &&
+    data.categories.includes(trimmedName)
+  ){
+    alert("同じカテゴリがすでにあります");
+    return;
+  }
 
   data.categories[index] =
     trimmedName;
 
-  // 通常の支出も変更
+
+  /* 通常の支出も変更 */
+
   data.expenses.forEach(item => {
 
     if(item.category === oldName){
@@ -2435,7 +2458,9 @@ function deleteCategory(index){
 
   });
 
-  // 固定費も変更
+
+  /* 固定費も変更 */
+
   data.fixedExpenses.forEach(item => {
 
     if(item.category === oldName){
@@ -2452,6 +2477,68 @@ function deleteCategory(index){
   alert("カテゴリ名を変更しました");
 
 }
+
+
+/* カテゴリ削除 */
+
+function deleteCategory(index){
+
+  const category =
+    data.categories[index];
+
+  if(!category){
+    return;
+  }
+
+  if(defaultCategories.includes(category)){
+    alert("初期カテゴリは削除できません。");
+    return;
+  }
+
+
+  /* すでに使われているカテゴリは削除しない */
+
+  const usedInExpenses =
+    data.expenses.some(
+      item => item.category === category
+    );
+
+  const usedInFixedExpenses =
+    data.fixedExpenses.some(
+      item => item.category === category
+    );
+
+  if(
+    usedInExpenses ||
+    usedInFixedExpenses
+  ){
+    alert(
+      "このカテゴリは支出または固定費で使用されています。\n" +
+      "先に該当するデータのカテゴリを変更してください。"
+    );
+
+    return;
+  }
+
+
+  if(
+    !confirm(
+      `「${category}」を削除しますか？`
+    )
+  ){
+    return;
+  }
+
+  data.categories.splice(index,1);
+
+  saveData();
+
+  renderCategorySettings();
+  renderCategorySelects();
+
+}
+```
+
 
 /* HTML対策 */
 function escapeHtml(text){
