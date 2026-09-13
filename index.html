@@ -1309,10 +1309,6 @@ function formatMonth(date){
 function yen(amount){
   return "¥" + amount.toLocaleString("ja-JP");
 }
-
-function yen(amount){
-  return "¥" + amount.toLocaleString("ja-JP");
-}
   
 /* 保存 */
 function saveData(){
@@ -1429,6 +1425,110 @@ function quickExpense(amount){
   });
 }
 
+/* =========================
+   固定費の支払日判定
+========================= */
+
+function isFixedExpensePaid(item, month){
+
+  if(item.active === false){
+    return false;
+  }
+
+  if(!item.startMonth){
+    return false;
+  }
+
+  if(item.startMonth > month){
+    return false;
+  }
+
+  const year =
+    Number(month.slice(0,4));
+
+  const monthNumber =
+    Number(month.slice(5,7));
+
+  const lastDay =
+    new Date(
+      year,
+      monthNumber,
+      0
+    ).getDate();
+
+  const day =
+    Math.min(
+      Number(item.day),
+      lastDay
+    );
+
+  const paymentDate =
+    new Date(
+      year,
+      monthNumber - 1,
+      day
+    );
+
+  const today =
+    new Date();
+
+  today.setHours(23,59,59,999);
+
+  return paymentDate <= today;
+}
+
+
+/* 支払済み固定費の合計 */
+
+function getPaidFixedExpenseTotal(){
+
+  const today =
+    new Date();
+
+  const end =
+    new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    );
+
+  let total = 0;
+
+  data.fixedExpenses.forEach(item => {
+
+    if(item.active === false){
+      return;
+    }
+
+    if(!item.startMonth){
+      return;
+    }
+
+    let current =
+      new Date(
+        Number(item.startMonth.slice(0,4)),
+        Number(item.startMonth.slice(5,7)) - 1,
+        1
+      );
+
+    while(current <= end){
+
+      const month =
+        formatMonth(current);
+
+      if(isFixedExpensePaid(item, month)){
+        total += Number(item.amount);
+      }
+
+      current.setMonth(
+        current.getMonth() + 1
+      );
+    }
+
+  });
+
+  return total;
+}  
 
 /* =========================
    表示
@@ -2342,9 +2442,21 @@ function restoreData(event){
         throw new Error();
       }
 
-      data=restored;
+     data=restored;
 
-      saveData();
+if(!Array.isArray(data.incomes)){
+  data.incomes=[];
+}
+
+if(!Array.isArray(data.expenses)){
+  data.expenses=[];
+}
+
+if(!Array.isArray(data.fixedExpenses)){
+  data.fixedExpenses=[];
+}
+
+saveData();
 
       alert("データを復元しました");
 
@@ -2694,14 +2806,6 @@ function clearData(){
 }
 
 
-/* 設定へ */
-function scrollToData(){
-
-  document.getElementById("dataCard")
-    .scrollIntoView({
-      behavior:"smooth"
-    });
-}
 
 /* =========================
    メニュー
