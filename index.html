@@ -924,6 +924,47 @@ body.dark .filter-select{
   color:#555;
   font-size:11px;
 }
+
+.category-setting-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.category-setting-row:last-child{
+  border-bottom:none;
+}
+
+.category-setting-name{
+  flex:1;
+  min-width:0;
+  font-size:14px;
+}
+
+.category-setting-buttons{
+  display:flex;
+  gap:5px;
+}
+
+.category-setting-buttons button{
+  padding:6px 9px;
+  border-radius:8px;
+  background:#f1f1f2;
+  color:#555;
+  font-size:11px;
+}
+
+.category-setting-buttons .category-delete{
+  color:#d94b4b;
+}
+
+body.dark .category-setting-buttons button{
+  background:#374151;
+  color:#f3f4f6;
+}
   
 </style>
 </head>
@@ -2361,10 +2402,6 @@ function deleteCategory(index){
   renderCategorySelects();
 }
 
-  return icons[category] || "📦";
-}
-
-
 /* HTML対策 */
 function escapeHtml(text){
 
@@ -3077,6 +3114,8 @@ if(localStorage.getItem("darkMode") === "on"){
 
 
 /* 初期表示 */
+renderCategorySelects();
+renderCategorySettings();
 render();
 
 </script>
