@@ -708,6 +708,65 @@ body.dark .filter-select{
     box-sizing:border-box;
   }
 }
+
+/* 支出グラフ */
+.chart-list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.chart-row{
+  display:grid;
+  grid-template-columns:72px 1fr 78px;
+  align-items:center;
+  gap:9px;
+  font-size:12px;
+}
+
+.chart-label{
+  white-space:nowrap;
+}
+
+.chart-bar-bg{
+  height:11px;
+  background:#eef0f2;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.chart-bar{
+  height:100%;
+  background:var(--expense);
+  border-radius:999px;
+  transition:width .3s ease;
+}
+
+.chart-amount{
+  text-align:right;
+  font-size:12px;
+  font-weight:700;
+}
+
+.chart-empty{
+  text-align:center;
+  color:var(--sub);
+  font-size:13px;
+  padding:15px 0;
+}
+
+.chart-total{
+  display:flex;
+  justify-content:space-between;
+  margin-top:18px;
+  padding-top:15px;
+  border-top:1px solid var(--line);
+  font-size:13px;
+}
+
+.chart-total strong{
+  font-size:16px;
+}
   
 </style>
 </head>
@@ -821,6 +880,15 @@ body.dark .filter-select{
     </div>
   </div>
 
+<!-- 支出グラフ -->
+<div class="card" id="expenseChartCard">
+
+  <div class="card-title">📊 今月の支出</div>
+
+  <div id="expenseChart"></div>
+
+</div>
+  
   <div class="ad-space">
     <!-- 将来ここに広告を配置 -->
   </div>
@@ -1111,9 +1179,106 @@ function render(){
   document.getElementById("expenseTotal").textContent =
     yen(expenseTotal);
 
-  renderHistory();
+renderHistory();
+renderExpenseChart();
 }
 
+/* =========================
+   支出グラフ
+========================= */
+
+function renderExpenseChart(){
+
+  const month =
+    document.getElementById("monthSelect").value;
+
+  const totals = {
+    "食費":0,
+    "交通費":0,
+    "買い物":0,
+    "娯楽":0,
+    "通信費":0,
+    "その他":0
+  };
+
+  data.expenses
+    .filter(item => item.date.startsWith(month))
+    .forEach(item => {
+
+      if(totals[item.category] !== undefined){
+        totals[item.category] += Number(item.amount);
+      }
+
+    });
+
+  const total =
+    Object.values(totals)
+      .reduce((sum,value) => sum + value,0);
+
+  const container =
+    document.getElementById("expenseChart");
+
+  if(!total){
+
+    container.innerHTML = `
+      <div class="chart-empty">
+        この月の支出はありません
+      </div>
+    `;
+
+    return;
+  }
+
+  const max =
+    Math.max(...Object.values(totals));
+
+  const sorted =
+    Object.entries(totals)
+      .filter(([category,amount]) => amount > 0)
+      .sort((a,b) => b[1] - a[1]);
+
+  container.innerHTML = `
+
+    <div class="chart-list">
+
+      ${sorted.map(([category,amount]) => `
+
+        <div class="chart-row">
+
+          <div class="chart-label">
+            ${getCategoryIcon(category)} ${category}
+          </div>
+
+          <div class="chart-bar-bg">
+            <div
+              class="chart-bar"
+              style="width:${(amount / max) * 100}%"
+            ></div>
+          </div>
+
+          <div class="chart-amount">
+            ${yen(amount)}
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+    <div class="chart-total">
+
+      <span>今月の支出合計</span>
+
+      <strong>
+        ${yen(total)}
+      </strong>
+
+    </div>
+
+  `;
+}
+  
 
 /* 履歴 */
 function renderHistory(){
