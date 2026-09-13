@@ -1816,6 +1816,1824 @@ function renderExpenseChart(){
 }
   
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>シンプルお金管理</title>
+<meta name="description" content="大学生がチャッピーに作らせたシンプルで見やすい支出管理アプリ。収入や支出を記録して、現在の残高や月ごとの履歴を簡単に管理できます。">
+<link rel="icon" href="20260912_164508666_iOS.png">
+<link rel="apple-touch-icon" href="20260912_164508666_iOS.png">
+  
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+:root{
+  --bg:#f7f7f8;
+  --card:#ffffff;
+  --text:#17181b;
+  --sub:#777b84;
+  --line:#e8e9ec;
+  --accent:#111827;
+  --income:#147d5a;
+  --expense:#d94b4b;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",
+    "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  border:0;
+  cursor:pointer;
+}
+
+.app{
+  width:100%;
+  max-width:620px;
+  margin:auto;
+  padding:24px 18px 40px;
+}
+
+/* ヘッダー */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:22px;
+}
+
+.logo{
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:-.5px;
+}
+
+.logo span{
+  color:#777b84;
+  font-weight:500;
+}
+
+.settings{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:#fff;
+  color:#555;
+  border:1px solid var(--line);
+}
+
+/* 残高 */
+.balance-card{
+  background:#111827;
+  color:white;
+  border-radius:24px;
+  padding:25px 23px 22px;
+  margin-bottom:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.balance-label{
+  font-size:13px;
+  opacity:.65;
+  margin-bottom:7px;
+}
+
+.balance{
+  font-size:40px;
+  font-weight:750;
+  letter-spacing:-1.5px;
+  margin-bottom:22px;
+}
+
+.summary{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.summary-item{
+  background:rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:12px 14px;
+}
+
+.summary-label{
+  font-size:12px;
+  opacity:.6;
+  margin-bottom:4px;
+}
+
+.summary-value{
+  font-size:15px;
+  font-weight:650;
+}
+
+.summary-value.income{
+  color:#78d9b3;
+}
+
+.summary-value.expense{
+  color:#ff9b9b;
+}
+
+/* 入出金ボタン */
+.action-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.action{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:17px;
+  text-align:left;
+  color:var(--text);
+}
+
+.action:active{
+  transform:scale(.98);
+}
+
+.action-icon{
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:11px;
+  margin-bottom:11px;
+  font-size:18px;
+}
+
+.income-icon{
+  background:#e8f7f1;
+  color:var(--income);
+}
+
+.expense-icon{
+  background:#fff0f0;
+  color:var(--expense);
+}
+
+.action-title{
+  font-weight:700;
+  font-size:15px;
+}
+
+.action-sub{
+  color:var(--sub);
+  font-size:11px;
+  margin-top:3px;
+}
+
+/* カード */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:14px;
+}
+
+.card-title{
+  font-size:16px;
+  font-weight:700;
+  margin:0 0 15px;
+}
+
+/* クイック */
+.quick{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+}
+
+.quick button{
+  background:#f3f4f6;
+  color:#202329;
+  padding:13px 5px;
+  border-radius:12px;
+  font-weight:650;
+}
+
+.quick button:active{
+  background:#e7e8eb;
+}
+
+/* フォーム */
+.form{
+  display:none;
+  margin-top:15px;
+  padding-top:15px;
+  border-top:1px solid var(--line);
+}
+
+.form.show{
+  display:block;
+}
+
+label{
+  display:block;
+  font-size:12px;
+  color:var(--sub);
+  margin:12px 0 6px;
+}
+
+input,select{
+  width:100%;
+  border:1px solid var(--line);
+  background:#f8f8f9;
+  border-radius:12px;
+  padding:12px 13px;
+  outline:none;
+  color:var(--text);
+}
+
+input:focus,select:focus{
+  border-color:#aeb2ba;
+  background:#fff;
+}
+
+.submit{
+  width:100%;
+  margin-top:15px;
+  padding:13px;
+  border-radius:12px;
+  background:#111827;
+  color:#fff;
+  font-weight:700;
+}
+
+.submit.income-submit{
+  background:var(--income);
+}
+
+.submit.expense-submit{
+  background:var(--expense);
+}
+
+/* 月 */
+.month{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.month button{
+  width:40px;
+  height:40px;
+  border-radius:11px;
+  background:#f3f4f6;
+}
+
+.month input{
+  margin:0;
+  flex:1;
+  text-align:center;
+}
+
+/* 履歴 */
+.history{
+  margin-top:2px;
+}
+
+.history-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.history-item:last-child{
+  border-bottom:0;
+}
+
+.history-icon{
+  width:42px;
+  height:42px;
+  flex-shrink:0;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f2f3f5;
+}
+
+.history-info{
+  flex:1;
+  min-width:0;
+}
+
+.history-name{
+  font-size:14px;
+  font-weight:650;
+}
+
+.history-date{
+  color:var(--sub);
+  font-size:11px;
+  margin-top:3px;
+}
+
+.history-amount{
+  font-size:14px;
+  font-weight:700;
+}
+
+.history-amount.income{
+  color:var(--income);
+}
+
+.history-amount.expense{
+  color:var(--expense);
+}
+
+.edit{
+  margin-left:6px;
+  padding:7px 9px;
+  border-radius:9px;
+  background:#eef2ff;
+  color:#4f46e5;
+  font-size:11px;
+}
+  
+.delete{
+  margin-left:6px;
+  padding:7px 9px;
+  border-radius:9px;
+  background:#f1f1f2;
+  color:#777;
+  font-size:11px;
+}
+
+.empty{
+  text-align:center;
+  color:#999;
+  padding:25px 5px 10px;
+  font-size:13px;
+}
+
+/* データ管理 */
+.data-buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.data-buttons button{
+  padding:11px 5px;
+  border-radius:11px;
+  background:#f3f4f6;
+  color:#444;
+  font-size:12px;
+}
+
+.clear{
+  width:100%;
+  margin-top:8px;
+  padding:11px;
+  border-radius:11px;
+  background:#fff1f1!important;
+  color:#c74747!important;
+}
+
+/* 広告スペース */
+.ad-space{
+  min-height:0;
+  margin:8px 0;
+  text-align:center;
+  color:#b0b2b7;
+  font-size:9px;
+}
+
+/* 小さい画面 */
+@media(max-width:380px){
+  .app{
+    padding:20px 14px 35px;
+  }
+
+  .balance{
+    font-size:34px;
+  }
+
+  .card{
+    padding:17px;
+  }
+}
+
+/* お知らせ */
+.notice-list{
+  display:flex;
+  flex-direction:column;
+}
+
+.notice-empty{
+  color:var(--sub);
+  font-size:13px;
+  padding:8px 0 0;
+}
+
+/* カテゴリ絞り込み */
+.filter{
+  margin-bottom:10px;
+}
+
+.filter select{
+  width:100%;
+  background:#f8f8f9;
+}
+
+/* ヘッダー */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    text-align: left;
+}
+
+.settings-button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin: 0;
+    border-radius: 12px;
+    background: white;
+    color: #333;
+    font-size: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* メニュー */
+.menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+}
+
+.menu-overlay.show {
+    display: block;
+}
+
+.menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(340px, 88%);
+    height: 100%;
+    background: #f5f6f8;
+    padding: 24px 20px;
+    overflow-y: auto;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.12);
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.menu-header h2 {
+    margin: 0;
+}
+
+.menu-close {
+    width: 42px;
+    height: 42px;
+    margin: 0;
+    padding: 0;
+    border-radius: 10px;
+    background: white;
+    color: #333;
+    font-size: 22px;
+}
+
+.menu-section {
+    background: white;
+    border-radius: 16px;
+    padding: 6px 16px;
+    margin-bottom: 16px;
+}
+
+.menu-section-title {
+    font-size: 13px;
+    color: #888;
+    padding: 12px 0 6px;
+}
+
+.menu-item {
+    width: 100%;
+    margin: 0;
+    padding: 15px 0;
+    background: transparent;
+    color: #222;
+    text-align: left;
+    border-radius: 0;
+    border-bottom: 1px solid #eee;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item.danger {
+    color: #e53935;
+}
+
+/* =========================
+   メニュー
+========================= */
+
+.menu-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:1000;
+  justify-content:flex-end;
+}
+
+.menu-overlay.show{
+  display:flex;
+}
+
+.menu{
+  width:320px;
+  max-width:85%;
+  height:100%;
+  background:#fff;
+  padding:24px 20px;
+  box-sizing:border-box;
+  overflow-y:auto;
+  box-shadow:-5px 0 20px rgba(0,0,0,.15);
+}
+
+.menu-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:25px;
+}
+
+.menu-header h2{
+  margin:0;
+  font-size:22px;
+}
+
+.menu-close{
+  border:none;
+  background:none;
+  font-size:22px;
+  cursor:pointer;
+  color:#555;
+}
+
+.menu-section{
+  margin-bottom:28px;
+}
+
+.menu-section h3{
+  font-size:13px;
+  color:#888;
+  margin:0 0 10px;
+}
+
+.menu-item{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 12px;
+  margin-bottom:6px;
+  border:none;
+  border-radius:10px;
+  background:#f5f6f8;
+  font-size:15px;
+  text-align:left;
+  cursor:pointer;
+  box-sizing:border-box;
+}
+
+.menu-item:hover{
+  background:#e9ebef;
+}
+
+.menu-item.danger{
+  color:#e53935;
+}
+
+.theme-item{
+  cursor:default;
+}
+
+#themeColor{
+  width:50px;
+  height:34px;
+  padding:2px;
+  margin-left:auto;
+  border:none;
+  background:none;
+}
+
+
+/* =========================
+   ダークモード
+========================= */
+
+body.dark{
+  --bg:#111827;
+  --card:#1f2937;
+  --text:#f3f4f6;
+  --sub:#9ca3af;
+  --line:#374151;
+  background:var(--bg);
+  color:var(--text);
+}
+
+body.dark .menu{
+  background:#1f2937;
+  color:#f3f4f6;
+}
+
+body.dark .menu-item{
+  background:#374151;
+  color:#f3f4f6;
+}
+
+body.dark .menu-item:hover{
+  background:#4b5563;
+}
+
+body.dark .menu-close{
+  color:#f3f4f6;
+}
+
+body.dark input,
+body.dark select{
+  background:#374151;
+  color:#f3f4f6;
+  border-color:#4b5563;
+}
+
+body.dark .action-card,
+body.dark .quick-card,
+body.dark .history-card{
+  background:#1f2937;
+  border-color:#374151;
+}
+
+body.dark .month-button,
+body.dark .filter-select{
+  background:#374151;
+  color:#f3f4f6;
+  border-color:#4b5563;
+}
+
+@media (max-width:600px){
+  #expenseSubmitButton{
+    width:100%;
+    min-width:0;
+    height:50px;
+    display:block;
+    font-size:16px;
+    padding:0 16px;
+    white-space:nowrap;
+    box-sizing:border-box;
+  }
+}
+
+/* 支出グラフ */
+.chart-list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.chart-row{
+  display:grid;
+  grid-template-columns:72px 1fr 78px;
+  align-items:center;
+  gap:9px;
+  font-size:12px;
+}
+
+.chart-label{
+  white-space:nowrap;
+}
+
+.chart-bar-bg{
+  height:11px;
+  background:#eef0f2;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.chart-bar{
+  height:100%;
+  background:var(--expense);
+  border-radius:999px;
+  transition:width .3s ease;
+}
+
+.chart-amount{
+  text-align:right;
+  font-size:12px;
+  font-weight:700;
+}
+
+.chart-empty{
+  text-align:center;
+  color:var(--sub);
+  font-size:13px;
+  padding:15px 0;
+}
+
+.chart-total{
+  display:flex;
+  justify-content:space-between;
+  margin-top:18px;
+  padding-top:15px;
+  border-top:1px solid var(--line);
+  font-size:13px;
+}
+
+.chart-total strong{
+  font-size:16px;
+}
+
+/* =========================
+   月別集計
+========================= */
+
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.monthly-summary-item{
+  background:var(--bg);
+  border-radius:12px;
+  padding:14px 10px;
+  text-align:center;
+}
+
+.monthly-summary-label{
+  color:var(--sub);
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+.monthly-summary-value{
+  font-size:17px;
+  font-weight:700;
+}
+
+.income-text{
+  color:var(--income);
+}
+
+.expense-text{
+  color:var(--expense);
+}
+
+.summary-balance{
+  border:1px solid var(--line);
+}
+
+.summary-category-title{
+  margin-top:22px;
+  margin-bottom:12px;
+  font-size:13px;
+  font-weight:700;
+}
+
+.monthly-category-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.monthly-category-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+}
+
+.monthly-category-row:last-child{
+  border-bottom:none;
+}
+
+.monthly-category-name{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.monthly-category-amount{
+  font-weight:700;
+}
+
+.monthly-category-empty{
+  text-align:center;
+  color:var(--sub);
+  font-size:13px;
+  padding:10px 0;
+}
+
+@media (max-width:600px){
+
+  .summary-grid{
+    gap:7px;
+  }
+
+  .monthly-summary-item{
+    padding:12px 6px;
+  }
+
+  .monthly-summary-value{
+    font-size:15px;
+  }
+
+  /* 固定費 */
+
+.fixed-cost-panel{
+  display:none;
+}
+
+.fixed-cost-panel.show{
+  display:block;
+}
+
+.fixed-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:12px;
+}
+
+.fixed-item{
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--card);
+}
+
+.fixed-item-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+
+.fixed-item-name{
+  font-size:14px;
+  font-weight:700;
+}
+
+.fixed-item-info{
+  color:var(--sub);
+  font-size:11px;
+  margin-top:5px;
+}
+
+.fixed-item-actions{
+  display:flex;
+  gap:6px;
+  margin-top:9px;
+}
+
+.fixed-item-actions button{
+  padding:6px 9px;
+  border-radius:8px;
+  background:#f1f1f2;
+  color:#555;
+  font-size:11px;
+}
+  
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">
+  <div class="logo">シンプル<span>お金管理</span></div>
+  <button class="settings" onclick="openMenu()">⚙</button>
+</div>
+
+  <!-- 残高 -->
+  <div class="balance-card">
+    <div class="balance-label">現在の残高</div>
+    <div class="balance" id="balance">¥0</div>
+
+    <div class="summary">
+      <div class="summary-item">
+        <div class="summary-label">入金</div>
+        <div class="summary-value income" id="incomeTotal">¥0</div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-label">支出</div>
+        <div class="summary-value expense" id="expenseTotal">¥0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 入出金 -->
+  <div class="action-grid">
+
+    <button class="action" onclick="toggleForm('incomeForm')">
+      <div class="action-icon income-icon">＋</div>
+      <div class="action-title">収入を追加</div>
+      <div class="action-sub">給料・仕送りなど</div>
+    </button>
+
+    <button class="action" onclick="toggleForm('expenseForm')">
+      <div class="action-icon expense-icon">−</div>
+      <div class="action-title">支出を追加</div>
+      <div class="action-sub">買い物・食費など</div>
+    </button>
+
+  </div>
+
+  <!-- 収入フォーム -->
+  <div class="card form" id="incomeForm">
+
+    <div class="card-title">収入を追加</div>
+
+    <label>金額</label>
+    <input type="number" id="incomeAmount" placeholder="例：80000" min="1">
+
+    <label>日付</label>
+    <input type="date" id="incomeDate">
+
+    <label>メモ</label>
+    <input type="text" id="incomeMemo" placeholder="給料など">
+
+    <button class="submit income-submit" onclick="addIncome()">
+      収入を追加する
+    </button>
+
+  </div>
+
+  <!-- 支出フォーム -->
+  <div class="card form" id="expenseForm">
+
+    <div class="card-title">支出を追加</div>
+
+    <label>金額</label>
+    <input type="number" id="expenseAmount" placeholder="例：1000" min="1">
+
+    <label>カテゴリ</label>
+    <select id="category">
+      <option value="食費">🍚 食費</option>
+      <option value="交通費">🚃 交通費</option>
+      <option value="買い物">🛍 買い物</option>
+      <option value="娯楽">🎮 娯楽</option>
+      <option value="通信費">📱 通信費</option>
+      <option value="その他">📦 その他</option>
+    </select>
+
+    <label>日付</label>
+    <input type="date" id="expenseDate">
+
+    <label>メモ</label>
+    <input type="text" id="expenseMemo" placeholder="任意">
+
+    <button
+  class="submit expense-submit"
+  id="expenseSubmitButton"
+  onclick="addExpense()"
+>
+  支出を追加する
+</button>
+
+  </div>
+
+  <!-- クイック支出 -->
+  <div class="card">
+    <div class="card-title">クイック支出</div>
+
+    <div class="quick">
+      <button onclick="quickExpense(500)">¥500</button>
+      <button onclick="quickExpense(1000)">¥1,000</button>
+      <button onclick="quickExpense(2000)">¥2,000</button>
+    </div>
+  </div>
+
+<!-- 月別集計 -->
+<!-- 月別集計 -->
+<div class="card" id="monthlySummaryCard">
+
+  <div class="card-title">📅 月別の集計</div>
+
+  <div class="summary-grid">
+
+    <div class="monthly-summary-item">
+      <div class="monthly-summary-label">収入</div>
+      <div class="monthly-summary-value income-text" id="monthlyIncome">
+        ¥0
+      </div>
+    </div>
+
+    <div class="monthly-summary-item">
+      <div class="monthly-summary-label">支出</div>
+      <div class="monthly-summary-value expense-text" id="monthlyExpense">
+        ¥0
+      </div>
+    </div>
+
+    <div class="monthly-summary-item summary-balance">
+      <div class="monthly-summary-label">収支</div>
+      <div class="monthly-summary-value" id="monthlyBalance">
+        ¥0
+      </div>
+    </div>
+
+  </div>
+
+  <div class="summary-category-title">
+    カテゴリー別支出
+  </div>
+
+  <div id="monthlyCategorySummary"></div>
+
+</div>
+  
+<!-- 支出グラフ -->
+<div class="card" id="expenseChartCard">
+
+  <div class="card-title">📊 今月の支出</div>
+
+  <div id="expenseChart"></div>
+
+</div>
+  
+  <div class="ad-space">
+    <!-- 将来ここに広告を配置 -->
+  </div>
+
+  <!-- 月 -->
+  <div class="card">
+    <div class="card-title">履歴を見る月</div>
+
+    <div class="month">
+      <button onclick="changeMonth(-1)">‹</button>
+      <input type="month" id="monthSelect" onchange="render()">
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+
+<!-- 履歴 -->
+<div class="card">
+  <div class="card-title">履歴</div>
+
+  <!-- カテゴリ絞り込み -->
+  <div class="filter">
+    <select id="categoryFilter" onchange="renderHistory()">
+      <option value="すべて">すべて</option>
+      <option value="食費">🍚 食費</option>
+      <option value="交通費">🚃 交通費</option>
+      <option value="買い物">🛍 買い物</option>
+      <option value="娯楽">🎮 娯楽</option>
+      <option value="通信費">📱 通信費</option>
+      <option value="その他">📦 その他</option>
+    </select>
+  </div>
+
+  <div class="history" id="history"></div>
+</div>
+  
+<!-- お知らせ -->
+<div class="card">
+  <div class="card-title">📢 お知らせ</div>
+
+  <div class="notice-list">
+    <div class="notice-empty">
+      チャッピーに作らせたのでまだ機能は少ないです。今後もいろいろと追加する予定なのでお待ちください。
+    </div>
+  </div>
+</div>
+
+
+ <!-- メニュー画面 -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu(event)">
+  <div class="menu" onclick="event.stopPropagation()">
+
+    <div class="menu-header">
+      <h2>メニュー</h2>
+      <button class="menu-close" onclick="closeMenu()">✕</button>
+    </div>
+
+<!-- 固定費管理 -->
+<div class="menu-section">
+
+  <h3>お金の管理</h3>
+
+  <button class="menu-item" onclick="toggleFixedCostPanel()">
+    <span>💳</span>
+    <span>固定費管理</span>
+  </button>
+
+  <div class="fixed-cost-panel" id="fixedCostPanel">
+
+    <div class="card" style="margin-top:12px;">
+
+      <div class="card-title">固定費を追加</div>
+
+      <label>名前</label>
+      <input
+        type="text"
+        id="fixedName"
+        placeholder="例：スマホ代"
+      >
+
+      <label>金額</label>
+      <input
+        type="number"
+        id="fixedAmount"
+        placeholder="例：3000"
+        min="1"
+      >
+
+      <label>カテゴリー</label>
+      <select id="fixedCategory">
+        <option value="食費">🍚 食費</option>
+        <option value="交通費">🚃 交通費</option>
+        <option value="買い物">🛍 買い物</option>
+        <option value="娯楽">🎮 娯楽</option>
+        <option value="通信費">📱 通信費</option>
+        <option value="その他">📦 その他</option>
+      </select>
+
+      <label>支払日</label>
+      <input
+        type="number"
+        id="fixedDay"
+        min="1"
+        max="31"
+        placeholder="例：10"
+      >
+
+      <label>開始月</label>
+      <input
+        type="month"
+        id="fixedStartMonth"
+      >
+
+      <button
+        class="submit"
+        id="fixedSubmitButton"
+        onclick="addFixedCost()"
+      >
+        固定費を登録する
+      </button>
+
+    </div>
+
+    <div id="fixedList"></div>
+
+  </div>
+
+</div>
+    
+    <!-- データ管理 -->
+    <div class="menu-section">
+      <h3>データ管理</h3>
+
+      <button class="menu-item" onclick="backupData()">
+        <span>💾</span>
+        <span>データをバックアップ</span>
+      </button>
+
+      <button class="menu-item" onclick="document.getElementById('restoreFile').click()">
+        <span>📂</span>
+        <span>データを復元</span>
+      </button>
+
+     <button class="menu-item danger" onclick="clearData()">
+        <span>🗑️</span>
+        <span>すべてのデータを削除</span>
+      </button>
+    </div>
+
+    <!-- 表示 -->
+    <div class="menu-section">
+      <h3>表示</h3>
+
+      <button class="menu-item" onclick="toggleDarkMode()">
+        <span>🌙</span>
+        <span>ダークモード</span>
+      </button>
+
+      <div class="menu-item theme-item">
+        <span>🎨</span>
+        <span>テーマカラー</span>
+        <input
+          type="color"
+          id="themeColor"
+          value="#1677ff"
+          onchange="changeTheme(this.value)"
+        >
+      </div>
+    </div>
+
+  </div>
+</div>
+
+    <input
+      type="file"
+      id="restoreFile"
+      accept=".json"
+      style="display:none"
+      onchange="restoreData(event)"
+    >
+
+<script>
+
+let data = JSON.parse(
+  localStorage.getItem("expenseManagerData")
+) || {
+  incomes: [],
+  expenses: [],
+  fixedExpenses: []
+};
+
+if(!Array.isArray(data.fixedExpenses)){
+  data.fixedExpenses = [];
+}
+
+const today = new Date();
+
+document.getElementById("incomeDate").value = formatDate(today);
+document.getElementById("expenseDate").value = formatDate(today);
+document.getElementById("monthSelect").value = formatMonth(today);
+
+
+/* 日付 */
+function formatDate(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,"0");
+  const d = String(date.getDate()).padStart(2,"0");
+
+  return `${y}-${m}-${d}`;
+}
+
+
+/* 月 */
+function formatMonth(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,"0");
+
+  return `${y}-${m}`;
+}
+
+
+/* 金額 */
+function yen(amount){
+  return "¥" + amount.toLocaleString("ja-JP");
+}
+
+
+/* 保存 */
+function saveData(){
+
+  localStorage.setItem(
+    "expenseManagerData",
+    JSON.stringify(data)
+  );
+
+  render();
+}
+
+
+/* フォーム表示 */
+function toggleForm(id){
+
+  const form = document.getElementById(id);
+
+  form.classList.toggle("show");
+
+  if(form.classList.contains("show")){
+    form.scrollIntoView({
+      behavior:"smooth",
+      block:"center"
+    });
+  }
+}
+
+
+/* 収入 */
+function addIncome(){
+
+  const amount =
+    Number(document.getElementById("incomeAmount").value);
+
+  const date =
+    document.getElementById("incomeDate").value;
+
+  const memo =
+    document.getElementById("incomeMemo").value.trim();
+
+  if(!amount || amount <= 0){
+    alert("金額を入力してください");
+    return;
+  }
+
+  data.incomes.push({
+    id:Date.now(),
+    amount,
+    date,
+    memo:memo || "収入"
+  });
+
+  document.getElementById("incomeAmount").value="";
+  document.getElementById("incomeMemo").value="";
+
+  document.getElementById("incomeForm")
+    .classList.remove("show");
+
+  saveData();
+}
+
+
+/* 支出 */
+function addExpense(){
+
+  const amount =
+    Number(document.getElementById("expenseAmount").value);
+
+  const category =
+    document.getElementById("category").value;
+
+  const date =
+    document.getElementById("expenseDate").value;
+
+  const memo =
+    document.getElementById("expenseMemo").value.trim();
+
+  if(!amount || amount <= 0){
+    alert("金額を入力してください");
+    return;
+  }
+
+  data.expenses.push({
+    id:Date.now(),
+    amount,
+    category,
+    date,
+    memo
+  });
+
+  document.getElementById("expenseAmount").value="";
+  document.getElementById("expenseMemo").value="";
+
+  document.getElementById("expenseForm")
+    .classList.remove("show");
+
+  saveData();
+}
+
+
+/* クイック支出 */
+function quickExpense(amount){
+
+  document.getElementById("expenseAmount").value = amount;
+
+  const form = document.getElementById("expenseForm");
+
+  form.classList.add("show");
+
+  form.scrollIntoView({
+    behavior:"smooth",
+    block:"center"
+  });
+}
+
+
+/* 表示 */
+function render(){
+
+  const incomeTotal =
+    data.incomes.reduce(
+      (sum,item)=>sum + Number(item.amount),0
+    );
+
+ const expenseTotal =
+  data.expenses.reduce(
+    (sum,item)=>sum + Number(item.amount),0
+  )
+  +
+  data.fixedExpenses
+    .filter(item => item.active !== false)
+    .reduce(
+      (sum,item)=>sum + Number(item.amount),0
+    );
+
+  const balance =
+    incomeTotal - expenseTotal;
+
+  document.getElementById("balance").textContent =
+    yen(balance);
+
+  document.getElementById("incomeTotal").textContent =
+    yen(incomeTotal);
+
+  document.getElementById("expenseTotal").textContent =
+    yen(expenseTotal);
+
+renderHistory();
+renderMonthlySummary();
+renderExpenseChart();
+}
+
+/* =========================
+   月別集計
+========================= */
+
+function renderMonthlySummary(){
+
+  const month =
+    document.getElementById("monthSelect").value;
+
+
+  /* =========================
+     月別の収入
+  ========================= */
+
+  const monthlyIncome =
+    data.incomes
+      .filter(item => item.date.startsWith(month))
+      .reduce((sum,item) => {
+        return sum + Number(item.amount);
+      },0);
+
+
+  /* =========================
+     通常の支出
+  ========================= */
+
+  const normalExpense =
+    data.expenses
+      .filter(item => item.date.startsWith(month))
+      .reduce((sum,item) => {
+        return sum + Number(item.amount);
+      },0);
+
+
+  /* =========================
+     固定費
+     ・ONのものだけ
+     ・開始月以降だけ
+  ========================= */
+
+  const activeFixedExpenses =
+    data.fixedExpenses.filter(item => {
+
+      return item.active !== false &&
+             item.startMonth <= month;
+
+    });
+
+
+  const fixedExpense =
+    activeFixedExpenses
+      .reduce((sum,item) => {
+        return sum + Number(item.amount);
+      },0);
+
+
+  /* =========================
+     支出合計
+  ========================= */
+
+  const monthlyExpense =
+    normalExpense + fixedExpense;
+
+
+  /* =========================
+     収支
+  ========================= */
+
+  const monthlyBalance =
+    monthlyIncome - monthlyExpense;
+
+
+  /* =========================
+     表示
+  ========================= */
+
+  document.getElementById("monthlyIncome").textContent =
+    yen(monthlyIncome);
+
+  document.getElementById("monthlyExpense").textContent =
+    yen(monthlyExpense);
+
+
+  const balanceElement =
+    document.getElementById("monthlyBalance");
+
+  balanceElement.textContent =
+    yen(monthlyBalance);
+
+
+  /* 収支の色 */
+
+  if(monthlyBalance >= 0){
+
+    balanceElement.style.color =
+      "var(--income)";
+
+  }else{
+
+    balanceElement.style.color =
+      "var(--expense)";
+
+  }
+
+
+  /* =========================
+     カテゴリー別支出
+  ========================= */
+
+  const categories = {
+
+    "食費":0,
+    "交通費":0,
+    "買い物":0,
+    "娯楽":0,
+    "通信費":0,
+    "その他":0
+
+  };
+
+
+  /* 通常の支出を追加 */
+
+  data.expenses
+    .filter(item => item.date.startsWith(month))
+    .forEach(item => {
+
+      if(categories[item.category] !== undefined){
+
+        categories[item.category] +=
+          Number(item.amount);
+
+      }
+
+    });
+
+
+  /* 固定費を追加 */
+
+  activeFixedExpenses.forEach(item => {
+
+    if(categories[item.category] !== undefined){
+
+      categories[item.category] +=
+        Number(item.amount);
+
+    }
+
+  });
+
+
+  /* 金額の大きい順 */
+
+  const sortedCategories =
+    Object.entries(categories)
+      .filter(([category,amount]) => amount > 0)
+      .sort((a,b) => b[1] - a[1]);
+
+
+  const container =
+    document.getElementById("monthlyCategorySummary");
+
+
+  if(sortedCategories.length === 0){
+
+    container.innerHTML = `
+      <div class="monthly-category-empty">
+        この月の支出はありません
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML = `
+
+    <div class="monthly-category-list">
+
+      ${sortedCategories.map(([category,amount]) => `
+
+        <div class="monthly-category-row">
+
+          <div class="monthly-category-name">
+            ${getCategoryIcon(category)}
+            ${category}
+          </div>
+
+          <div class="monthly-category-amount">
+            ${yen(amount)}
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+  `;
+
+}
+  
+/* =========================
+   支出グラフ
+========================= */
+
+function renderExpenseChart(){
+
+  const month =
+    document.getElementById("monthSelect").value;
+
+
+  /* =========================
+     カテゴリー
+  ========================= */
+
+  const categories = {
+
+    "食費":0,
+    "交通費":0,
+    "買い物":0,
+    "娯楽":0,
+    "通信費":0,
+    "その他":0
+
+  };
+
+
+  /* =========================
+     通常の支出
+  ========================= */
+
+  data.expenses
+    .filter(item => item.date.startsWith(month))
+    .forEach(item => {
+
+      if(categories[item.category] !== undefined){
+
+        categories[item.category] +=
+          Number(item.amount);
+
+      }
+
+    });
+
+
+  /* =========================
+     固定費
+     ・ONのものだけ
+     ・開始月以降だけ
+  ========================= */
+
+  data.fixedExpenses
+    .filter(item => {
+
+      return item.active !== false &&
+             item.startMonth <= month;
+
+    })
+    .forEach(item => {
+
+      if(categories[item.category] !== undefined){
+
+        categories[item.category] +=
+          Number(item.amount);
+
+      }
+
+    });
+
+
+  /* =========================
+     金額の大きい順
+  ========================= */
+
+  const sortedCategories =
+    Object.entries(categories)
+      .filter(([category,amount]) => amount > 0)
+      .sort((a,b) => b[1] - a[1]);
+
+
+  const container =
+    document.getElementById("expenseChart");
+
+
+  /* =========================
+     支出なし
+  ========================= */
+
+  if(sortedCategories.length === 0){
+
+    container.innerHTML = `
+      <div class="chart-empty">
+        この月の支出はありません
+      </div>
+    `;
+
+    return;
+  }
+
+
+  /* =========================
+     最大金額
+  ========================= */
+
+  const maxAmount =
+    sortedCategories[0][1];
+
+
+  /* =========================
+     グラフ表示
+  ========================= */
+
+  container.innerHTML = `
+
+    <div class="chart-list">
+
+      ${sortedCategories.map(([category,amount]) => {
+
+        const width =
+          (amount / maxAmount) * 100;
+
+        return `
+
+          <div class="chart-row">
+
+            <div class="chart-label">
+              ${getCategoryIcon(category)}
+              ${category}
+            </div>
+
+            <div class="chart-bar-bg">
+
+              <div
+                class="chart-bar"
+                style="width:${width}%"
+              ></div>
+
+            </div>
+
+            <div class="chart-amount">
+              ${yen(amount)}
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("")}
+
+    </div>
+
+  `;
+
+}
+  
+
 /* 履歴 */
 function renderHistory(){
 
@@ -2430,6 +4248,255 @@ function renderFixedCosts(){
 
   `;
 }
+
+
+/* ON / OFF */
+
+function toggleFixedCost(id){
+
+  const item =
+    data.fixedExpenses.find(item => item.id === id);
+
+  if(!item) return;
+
+  item.active =
+    item.active === false;
+
+  saveData();
+
+  renderFixedCosts();
+}
+
+
+/* 削除 */
+
+function deleteFixedCost(id){
+
+  if(!confirm("この固定費を削除しますか？")){
+    return;
+  }
+
+  data.fixedExpenses =
+    data.fixedExpenses.filter(
+      item => item.id !== id
+    );
+
+  saveData();
+
+  renderFixedCosts();
+}
+
+
+/* 編集 */
+
+function editFixedCost(id){
+
+  const item =
+    data.fixedExpenses.find(item => item.id === id);
+
+  if(!item) return;
+
+  document.getElementById("fixedName").value =
+    item.name;
+
+  document.getElementById("fixedAmount").value =
+    item.amount;
+
+  document.getElementById("fixedCategory").value =
+    item.category;
+
+  document.getElementById("fixedDay").value =
+    item.day;
+
+  document.getElementById("fixedStartMonth").value =
+    item.startMonth;
+
+  const button =
+    document.getElementById("fixedSubmitButton");
+
+  button.textContent =
+    "固定費を変更する";
+
+  button.onclick = function(){
+
+    updateFixedCost(id);
+
+  };
+
+}
+
+
+/* 編集保存 */
+
+function updateFixedCost(id){
+
+  const item =
+    data.fixedExpenses.find(item => item.id === id);
+
+  if(!item) return;
+
+  const name =
+    document.getElementById("fixedName").value.trim();
+
+  const amount =
+    Number(document.getElementById("fixedAmount").value);
+
+  const category =
+    document.getElementById("fixedCategory").value;
+
+  const day =
+    Number(document.getElementById("fixedDay").value);
+
+  const startMonth =
+    document.getElementById("fixedStartMonth").value;
+
+  if(!name){
+    alert("固定費の名前を入力してください");
+    return;
+  }
+
+  if(!amount || amount <= 0){
+    alert("金額を入力してください");
+    return;
+  }
+
+  if(!day || day < 1 || day > 31){
+    alert("支払日を1〜31で入力してください");
+    return;
+  }
+
+  if(!startMonth){
+    alert("開始月を入力してください");
+    return;
+  }
+
+  item.name = name;
+  item.amount = amount;
+  item.category = category;
+  item.day = day;
+  item.startMonth = startMonth;
+
+  const button =
+    document.getElementById("fixedSubmitButton");
+
+  button.textContent =
+    "固定費を登録する";
+
+  button.onclick =
+    addFixedCost;
+
+  document.getElementById("fixedName").value="";
+  document.getElementById("fixedAmount").value="";
+  document.getElementById("fixedDay").value="";
+
+  saveData();
+
+  renderFixedCosts();
+
+  alert("固定費を変更しました");
+}
+  
+
+/* 全削除 */
+function clearData(){
+
+  if(
+    !confirm(
+      "すべての入金・支出データを削除しますか？"
+    )
+  ){
+    return;
+  }
+
+ data={
+  incomes:[],
+  expenses:[],
+  fixedExpenses:[]
+};
+
+  saveData();
+}
+
+
+/* 設定へ */
+function scrollToData(){
+
+  document.getElementById("dataCard")
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+}
+
+/* =========================
+   メニュー
+========================= */
+
+function openMenu(){
+  document.getElementById("menuOverlay").classList.add("show");
+}
+
+function closeMenu(event){
+  if(event && event.target !== event.currentTarget){
+    return;
+  }
+
+  document.getElementById("menuOverlay").classList.remove("show");
+}
+
+
+/* =========================
+   ダークモード
+========================= */
+
+function toggleDarkMode(){
+  document.body.classList.toggle("dark");
+
+  localStorage.setItem(
+    "darkMode",
+    document.body.classList.contains("dark") ? "on" : "off"
+  );
+}
+
+
+/* =========================
+   テーマカラー
+========================= */
+
+function changeTheme(color){
+  document.documentElement.style.setProperty("--bg", color);
+  localStorage.setItem("themeColor", color);
+}
+
+
+/* =========================
+   保存されている設定を読み込む
+========================= */
+
+const savedTheme = localStorage.getItem("themeColor");
+
+if(savedTheme){
+  document.documentElement.style.setProperty("--bg", savedTheme);
+
+  const themeInput = document.getElementById("themeColor");
+
+  if(themeInput){
+    themeInput.value = savedTheme;
+  }
+}
+
+
+if(localStorage.getItem("darkMode") === "on"){
+  document.body.classList.add("dark");
+}
+
+
+/* 初期表示 */
+render();
+
+</script>
+
+</body>
+</html>
 
 
 /* ON / OFF */
