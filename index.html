@@ -2193,7 +2193,6 @@ function renderHistory(){
 
 }
 
-```js
 /* カテゴリアイコン */
 function getCategoryIcon(category){
 
@@ -2298,7 +2297,6 @@ function renderCategorySelects(){
 
 
 /* カテゴリ設定画面 */
-
 function renderCategorySettings(){
 
   const container =
@@ -2370,7 +2368,6 @@ function renderCategorySettings(){
 
 
 /* カテゴリ追加 */
-
 function addCategory(){
 
   const name =
@@ -2403,7 +2400,6 @@ function addCategory(){
 
 
 /* カテゴリ名変更 */
-
 function renameCategory(index){
 
   const oldName =
@@ -2480,7 +2476,6 @@ function renameCategory(index){
 
 
 /* カテゴリ削除 */
-
 function deleteCategory(index){
 
   const category =
@@ -2494,9 +2489,6 @@ function deleteCategory(index){
     alert("初期カテゴリは削除できません。");
     return;
   }
-
-
-  /* すでに使われているカテゴリは削除しない */
 
   const usedInExpenses =
     data.expenses.some(
@@ -2520,7 +2512,6 @@ function deleteCategory(index){
     return;
   }
 
-
   if(
     !confirm(
       `「${category}」を削除しますか？`
@@ -2537,8 +2528,6 @@ function deleteCategory(index){
   renderCategorySelects();
 
 }
-```
-
 
 /* HTML対策 */
 function escapeHtml(text){
