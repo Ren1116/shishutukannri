@@ -865,6 +865,60 @@ body.dark .filter-select{
     font-size:15px;
   }
 
+  /* 固定費 */
+
+.fixed-cost-panel{
+  display:none;
+}
+
+.fixed-cost-panel.show{
+  display:block;
+}
+
+.fixed-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:12px;
+}
+
+.fixed-item{
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--card);
+}
+
+.fixed-item-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+
+.fixed-item-name{
+  font-size:14px;
+  font-weight:700;
+}
+
+.fixed-item-info{
+  color:var(--sub);
+  font-size:11px;
+  margin-top:5px;
+}
+
+.fixed-item-actions{
+  display:flex;
+  gap:6px;
+  margin-top:9px;
+}
+
+.fixed-item-actions button{
+  padding:6px 9px;
+  border-radius:8px;
+  background:#f1f1f2;
+  color:#555;
+  font-size:11px;
 }
   
 </style>
@@ -1083,6 +1137,78 @@ body.dark .filter-select{
       <button class="menu-close" onclick="closeMenu()">✕</button>
     </div>
 
+<!-- 固定費管理 -->
+<div class="menu-section">
+
+  <h3>お金の管理</h3>
+
+  <button class="menu-item" onclick="toggleFixedCostPanel()">
+    <span>💳</span>
+    <span>固定費管理</span>
+  </button>
+
+  <div class="fixed-cost-panel" id="fixedCostPanel">
+
+    <div class="card" style="margin-top:12px;">
+
+      <div class="card-title">固定費を追加</div>
+
+      <label>名前</label>
+      <input
+        type="text"
+        id="fixedName"
+        placeholder="例：スマホ代"
+      >
+
+      <label>金額</label>
+      <input
+        type="number"
+        id="fixedAmount"
+        placeholder="例：3000"
+        min="1"
+      >
+
+      <label>カテゴリー</label>
+      <select id="fixedCategory">
+        <option value="食費">🍚 食費</option>
+        <option value="交通費">🚃 交通費</option>
+        <option value="買い物">🛍 買い物</option>
+        <option value="娯楽">🎮 娯楽</option>
+        <option value="通信費">📱 通信費</option>
+        <option value="その他">📦 その他</option>
+      </select>
+
+      <label>支払日</label>
+      <input
+        type="number"
+        id="fixedDay"
+        min="1"
+        max="31"
+        placeholder="例：10"
+      >
+
+      <label>開始月</label>
+      <input
+        type="month"
+        id="fixedStartMonth"
+      >
+
+      <button
+        class="submit"
+        id="fixedSubmitButton"
+        onclick="addFixedCost()"
+      >
+        固定費を登録する
+      </button>
+
+    </div>
+
+    <div id="fixedList"></div>
+
+  </div>
+
+</div>
+    
     <!-- データ管理 -->
     <div class="menu-section">
       <h3>データ管理</h3>
@@ -1141,8 +1267,13 @@ let data = JSON.parse(
   localStorage.getItem("expenseManagerData")
 ) || {
   incomes: [],
-  expenses: []
+  expenses: [],
+  fixedExpenses: []
 };
+
+if(!Array.isArray(data.fixedExpenses)){
+  data.fixedExpenses = [];
+}
 
 const today = new Date();
 
@@ -1985,6 +2116,319 @@ function restoreData(event){
   reader.readAsText(file);
 }
 
+/* =========================
+   固定費
+========================= */
+
+function toggleFixedCostPanel(){
+
+  const panel =
+    document.getElementById("fixedCostPanel");
+
+  panel.classList.toggle("show");
+
+  if(panel.classList.contains("show")){
+    renderFixedCosts();
+  }
+}
+
+
+/* 固定費追加 */
+
+function addFixedCost(){
+
+  const name =
+    document.getElementById("fixedName").value.trim();
+
+  const amount =
+    Number(document.getElementById("fixedAmount").value);
+
+  const category =
+    document.getElementById("fixedCategory").value;
+
+  const day =
+    Number(document.getElementById("fixedDay").value);
+
+  const startMonth =
+    document.getElementById("fixedStartMonth").value;
+
+  if(!name){
+    alert("固定費の名前を入力してください");
+    return;
+  }
+
+  if(!amount || amount <= 0){
+    alert("金額を入力してください");
+    return;
+  }
+
+  if(!day || day < 1 || day > 31){
+    alert("支払日を1〜31で入力してください");
+    return;
+  }
+
+  if(!startMonth){
+    alert("開始月を入力してください");
+    return;
+  }
+
+  data.fixedExpenses.push({
+
+    id:Date.now(),
+
+    name:name,
+
+    amount:amount,
+
+    category:category,
+
+    day:day,
+
+    startMonth:startMonth,
+
+    active:true
+
+  });
+
+  document.getElementById("fixedName").value="";
+  document.getElementById("fixedAmount").value="";
+  document.getElementById("fixedDay").value="";
+
+  saveData();
+
+  renderFixedCosts();
+
+  alert("固定費を登録しました");
+}
+
+
+/* 固定費表示 */
+
+function renderFixedCosts(){
+
+  const container =
+    document.getElementById("fixedList");
+
+  if(!container) return;
+
+  if(data.fixedExpenses.length === 0){
+
+    container.innerHTML = `
+      <div class="monthly-category-empty">
+        登録されている固定費はありません
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = `
+
+    <div class="fixed-list">
+
+      ${data.fixedExpenses.map(item => `
+
+        <div class="fixed-item">
+
+          <div class="fixed-item-top">
+
+            <div class="fixed-item-name">
+              ${escapeHtml(item.name)}
+            </div>
+
+            <strong>
+              ${yen(item.amount)}
+            </strong>
+
+          </div>
+
+          <div class="fixed-item-info">
+
+            ${getCategoryIcon(item.category)}
+            ${escapeHtml(item.category)}
+            ・毎月${item.day}日
+            ・${escapeHtml(item.startMonth)}〜
+
+          </div>
+
+          <div class="fixed-item-actions">
+
+            <button
+              onclick="toggleFixedCost(${item.id})"
+            >
+              ${item.active === false ? "OFF" : "ON"}
+            </button>
+
+            <button
+              onclick="editFixedCost(${item.id})"
+            >
+              編集
+            </button>
+
+            <button
+              onclick="deleteFixedCost(${item.id})"
+            >
+              削除
+            </button>
+
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+  `;
+}
+
+
+/* ON / OFF */
+
+function toggleFixedCost(id){
+
+  const item =
+    data.fixedExpenses.find(item => item.id === id);
+
+  if(!item) return;
+
+  item.active =
+    item.active === false;
+
+  saveData();
+
+  renderFixedCosts();
+}
+
+
+/* 削除 */
+
+function deleteFixedCost(id){
+
+  if(!confirm("この固定費を削除しますか？")){
+    return;
+  }
+
+  data.fixedExpenses =
+    data.fixedExpenses.filter(
+      item => item.id !== id
+    );
+
+  saveData();
+
+  renderFixedCosts();
+}
+
+
+/* 編集 */
+
+function editFixedCost(id){
+
+  const item =
+    data.fixedExpenses.find(item => item.id === id);
+
+  if(!item) return;
+
+  document.getElementById("fixedName").value =
+    item.name;
+
+  document.getElementById("fixedAmount").value =
+    item.amount;
+
+  document.getElementById("fixedCategory").value =
+    item.category;
+
+  document.getElementById("fixedDay").value =
+    item.day;
+
+  document.getElementById("fixedStartMonth").value =
+    item.startMonth;
+
+  const button =
+    document.getElementById("fixedSubmitButton");
+
+  button.textContent =
+    "固定費を変更する";
+
+  button.onclick = function(){
+
+    updateFixedCost(id);
+
+  };
+
+}
+
+
+/* 編集保存 */
+
+function updateFixedCost(id){
+
+  const item =
+    data.fixedExpenses.find(item => item.id === id);
+
+  if(!item) return;
+
+  const name =
+    document.getElementById("fixedName").value.trim();
+
+  const amount =
+    Number(document.getElementById("fixedAmount").value);
+
+  const category =
+    document.getElementById("fixedCategory").value;
+
+  const day =
+    Number(document.getElementById("fixedDay").value);
+
+  const startMonth =
+    document.getElementById("fixedStartMonth").value;
+
+  if(!name){
+    alert("固定費の名前を入力してください");
+    return;
+  }
+
+  if(!amount || amount <= 0){
+    alert("金額を入力してください");
+    return;
+  }
+
+  if(!day || day < 1 || day > 31){
+    alert("支払日を1〜31で入力してください");
+    return;
+  }
+
+  if(!startMonth){
+    alert("開始月を入力してください");
+    return;
+  }
+
+  item.name = name;
+  item.amount = amount;
+  item.category = category;
+  item.day = day;
+  item.startMonth = startMonth;
+
+  const button =
+    document.getElementById("fixedSubmitButton");
+
+  button.textContent =
+    "固定費を登録する";
+
+  button.onclick =
+    addFixedCost;
+
+  document.getElementById("fixedName").value="";
+  document.getElementById("fixedAmount").value="";
+  document.getElementById("fixedDay").value="";
+
+  saveData();
+
+  renderFixedCosts();
+
+  alert("固定費を変更しました");
+}
+  
 
 /* 全削除 */
 function clearData(){
