@@ -1427,7 +1427,10 @@ function quickExpense(amount){
 }
 
 
-/* 表示 */
+/* =========================
+   表示
+========================= */
+
 function render(){
 
   const incomeTotal =
@@ -1435,10 +1438,17 @@ function render(){
       (sum,item)=>sum + Number(item.amount),0
     );
 
-const expenseTotal =
-  data.expenses.reduce(
-    (sum,item)=>sum + Number(item.amount),0
-  );
+  const normalExpenseTotal =
+    data.expenses.reduce(
+      (sum,item)=>sum + Number(item.amount),0
+    );
+
+  // 支払日を過ぎた固定費だけを支出として計算
+  const fixedExpenseTotal =
+    getPaidFixedExpenseTotal();
+
+  const expenseTotal =
+    normalExpenseTotal + fixedExpenseTotal;
 
   const balance =
     incomeTotal - expenseTotal;
@@ -1452,9 +1462,9 @@ const expenseTotal =
   document.getElementById("expenseTotal").textContent =
     yen(expenseTotal);
 
-renderHistory();
-renderMonthlySummary();
-renderExpenseChart();
+  renderHistory();
+  renderMonthlySummary();
+  renderExpenseChart();
 }
 
 /* =========================
@@ -1497,21 +1507,51 @@ function renderMonthlySummary(){
      ・開始月以降だけ
   ========================= */
 
-  const activeFixedExpenses =
-    data.fixedExpenses.filter(item => {
+const fixedExpenses =
+  data.fixedExpenses
+    .filter(item=>{
 
-      return item.active !== false &&
-             item.startMonth <= month;
+      if(item.active === false) return false;
 
+      if(item.startMonth > month) return false;
+
+      const year =
+        Number(month.slice(0,4));
+
+      const monthNumber =
+        Number(month.slice(5,7));
+
+      const lastDay =
+        new Date(
+          year,
+          monthNumber,
+          0
+        ).getDate();
+
+      const day =
+        Math.min(
+          Number(item.day),
+          lastDay
+        );
+
+      const paymentDate =
+        new Date(
+          year,
+          monthNumber - 1,
+          day
+        );
+
+      const today =
+        new Date();
+
+      today.setHours(
+        23,59,59,999
+      );
+
+      return paymentDate <= today &&
+             (filter==="すべて" ||
+              item.category===filter);
     });
-
-
-  const fixedExpense =
-    activeFixedExpenses
-      .reduce((sum,item) => {
-        return sum + Number(item.amount);
-      },0);
-
 
   /* =========================
      支出合計
