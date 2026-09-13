@@ -1473,8 +1473,8 @@ function render(){
 
 function renderMonthlySummary(){
 
-  const month =
-    document.getElementById("monthInput").value;
+const month =
+  document.getElementById("monthSelect").value;
 
   /* 月の収入 */
   const monthlyIncome =
@@ -1561,8 +1561,8 @@ function renderMonthlySummary(){
   });
 
 
-  const categoryList =
-    document.getElementById("categoryList");
+ const categoryList =
+  document.getElementById("monthlyCategorySummary");
 
   if(!categoryList){
     return;
