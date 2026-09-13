@@ -778,20 +778,20 @@ body.dark .filter-select{
   gap:10px;
 }
 
-.summary-item{
+.monthly-summary-item{
   background:var(--bg);
   border-radius:12px;
   padding:14px 10px;
   text-align:center;
 }
 
-.summary-label{
+.monthly-summary-label{
   color:var(--sub);
   font-size:12px;
   margin-bottom:6px;
 }
 
-.summary-value{
+.monthly-summary-value{
   font-size:17px;
   font-weight:700;
 }
@@ -857,14 +857,15 @@ body.dark .filter-select{
     gap:7px;
   }
 
-  .summary-item{
+  .monthly-summary-item{
     padding:12px 6px;
   }
 
-  .summary-value{
+  .monthly-summary-value{
     font-size:15px;
   }
 
+}
 }
   
 </style>
@@ -986,12 +987,26 @@ body.dark .filter-select{
 
   <div class="summary-grid">
 
-    <div class="summary-item">
-      <div class="summary-label">収入</div>
-      <div class="summary-value income-text" id="monthlyIncome">
-        ¥0
-      </div>
-    </div>
+   <div class="monthly-summary-item">
+  <div class="monthly-summary-label">収入</div>
+  <div class="monthly-summary-value income-text" id="monthlyIncome">
+    ¥0
+  </div>
+</div>
+
+<div class="monthly-summary-item">
+  <div class="monthly-summary-label">支出</div>
+  <div class="monthly-summary-value expense-text" id="monthlyExpense">
+    ¥0
+  </div>
+</div>
+
+<div class="monthly-summary-item summary-balance">
+  <div class="monthly-summary-label">収支</div>
+  <div class="monthly-summary-value" id="monthlyBalance">
+    ¥0
+  </div>
+</div>
 
     <div class="summary-item">
       <div class="summary-label">支出</div>
@@ -1317,6 +1332,7 @@ function render(){
     yen(expenseTotal);
 
 renderHistory();
+renderMonthlySummary();
 renderExpenseChart();
 }
 
