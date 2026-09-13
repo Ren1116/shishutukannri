@@ -965,10 +965,82 @@ body.dark .category-setting-buttons button{
   background:#374151;
   color:#f3f4f6;
 }
+
+/* =========================
+   カテゴリ追加モーダル
+========================= */
+
+.category-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:2000;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.category-modal.show{
+  display:flex;
+}
+
+.category-modal-box{
+  width:100%;
+  max-width:360px;
+  background:var(--card);
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 10px 40px rgba(0,0,0,.2);
+}
+
+.category-modal-title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:16px;
+}
+
+.category-modal-input{
+  width:100%;
+  height:50px;
+  font-size:16px;
+  margin-bottom:12px;
+}
+
+.category-modal-buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.category-modal-buttons button{
+  height:48px;
+  border-radius:12px;
+  font-weight:700;
+}
+
+.category-cancel{
+  background:#f1f1f2;
+  color:#555;
+}
+
+.category-add{
+  background:#111827;
+  color:white;
+}
+
+body.dark .category-modal-box{
+  background:#1f2937;
+}
+
+body.dark .category-cancel{
+  background:#374151;
+  color:#f3f4f6;
+}
   
 </style>
 </head>
-
+  
 <body>
 
 <div class="app">
@@ -1241,13 +1313,13 @@ body.dark .category-setting-buttons button{
 
   <div id="categorySettings"></div>
 
-  <button
-    class="menu-item"
-    onclick="addCategory()"
-  >
-    <span>＋</span>
-    <span>カテゴリを追加</span>
-  </button>
+<button
+  class="menu-item"
+  onclick="openCategoryModal()"
+>
+  <span>＋</span>
+  <span>カテゴリを追加</span>
+</button>
 
 </div>
     
@@ -2367,35 +2439,123 @@ function renderCategorySettings(){
 }
 
 
+/* =========================
+   カテゴリ追加モーダル
+========================= */
+
+function openCategoryModal(){
+
+  const modal =
+    document.getElementById("categoryModal");
+
+  const input =
+    document.getElementById("newCategoryName");
+
+  if(!modal || !input){
+    alert("カテゴリ追加画面を読み込めませんでした");
+    return;
+  }
+
+  modal.classList.add("show");
+
+  input.value = "";
+
+  setTimeout(() => {
+    input.focus();
+  }, 100);
+
+}
+
+
+/* モーダルを閉じる */
+
+function closeCategoryModal(event){
+
+  if(
+    event &&
+    event.target !== event.currentTarget
+  ){
+    return;
+  }
+
+  const modal =
+    document.getElementById("categoryModal");
+
+  if(modal){
+    modal.classList.remove("show");
+  }
+
+}
+
+
 /* カテゴリ追加 */
-function addCategory(){
 
-  const name =
-    prompt("追加するカテゴリ名を入力してください");
+function confirmAddCategory(){
 
-  if(name === null) return;
+  const input =
+    document.getElementById("newCategoryName");
+
+  if(!input){
+    return;
+  }
 
   const newName =
-    name.trim();
+    input.value.trim();
+
+
+  /* 未入力 */
 
   if(!newName){
+
     alert("カテゴリ名を入力してください");
+
+    input.focus();
+
     return;
   }
 
+
+  /* 重複 */
+
   if(data.categories.includes(newName)){
+
     alert("同じカテゴリがすでにあります");
+
+    input.focus();
+
     return;
   }
+
+
+  /* カテゴリ追加 */
 
   data.categories.push(newName);
 
-  saveData();
 
-  renderCategorySettings();
+  /* 保存 */
+
+  localStorage.setItem(
+    "expenseManagerData",
+    JSON.stringify(data)
+  );
+
+
+  /* 表示更新 */
+
   renderCategorySelects();
+  renderCategorySettings();
+  render();
 
-  alert("カテゴリを追加しました");
+
+  /* モーダルを閉じる */
+
+  closeCategoryModal();
+
+
+  alert(
+    `「${newName}」をカテゴリに追加しました`
+  );
+
 }
 
 
@@ -3251,8 +3411,56 @@ renderCategorySettings();
 render();
 
 </script>
+</script>
+
+<!-- カテゴリ追加画面 -->
+<div
+  class="category-modal"
+  id="categoryModal"
+  onclick="closeCategoryModal(event)"
+>
+  <div
+    class="category-modal-box"
+    onclick="event.stopPropagation()"
+  >
+
+    <div class="category-modal-title">
+      カテゴリを追加
+    </div>
+
+    <input
+      type="text"
+      id="newCategoryName"
+      class="category-modal-input"
+      placeholder="例：旅行"
+      maxlength="20"
+    >
+
+    <div class="category-modal-buttons">
+
+      <button
+        type="button"
+        class="category-cancel"
+        onclick="closeCategoryModal()"
+      >
+        キャンセル
+      </button>
+
+      <button
+        type="button"
+        class="category-add"
+        onclick="confirmAddCategory()"
+      >
+        追加する
+      </button>
+
+    </div>
+
+  </div>
+</div>
 
 </body>
 </html>
+
 
 
