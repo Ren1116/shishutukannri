@@ -2199,46 +2199,18 @@ function renderHistory(){
 }
 
 /* カテゴリアイコン */
-function renderCategorySelects(){
-  const selects = document.querySelectorAll("[data-category-select]");
+function getCategoryIcon(category){
 
-  selects.forEach(select => {
-    const currentValue = select.value;
+  const icons = {
+    "食費":"🍚",
+    "交通費":"🚃",
+    "買い物":"🛍",
+    "娯楽":"🎮",
+    "通信費":"📱",
+    "その他":"📦"
+  };
 
-    select.innerHTML = "";
-
-    data.categories.forEach(category => {
-      const option = document.createElement("option");
-      option.value = category;
-      option.textContent = getCategoryIcon(category) + " " + category;
-      select.appendChild(option);
-    });
-
-    if(data.categories.includes(currentValue)){
-      select.value = currentValue;
-    }
-  });
-
-  const filter = document.getElementById("categoryFilter");
-
-  if(filter){
-    const currentFilter = filter.value;
-
-    filter.innerHTML = `<option value="すべて">すべて</option>`;
-
-    data.categories.forEach(category => {
-      const option = document.createElement("option");
-      option.value = category;
-      option.textContent = getCategoryIcon(category) + " " + category;
-      filter.appendChild(option);
-    });
-
-    if(currentFilter === "すべて" || data.categories.includes(currentFilter)){
-      filter.value = currentFilter;
-    }else{
-      filter.value = "すべて";
-    }
-  }
+  return icons[category] || "📦";
 }
 
 
@@ -3042,7 +3014,8 @@ function clearData(){
  data={
   incomes:[],
   expenses:[],
-  fixedExpenses:[]
+  fixedExpenses:[],
+  categories:[...defaultCategories]
 };
 
   saveData();
