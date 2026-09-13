@@ -1740,9 +1740,9 @@ const month =
 
       div.innerHTML = `
   <div class="monthly-category-name">
-    ${(category)}
-    ${escapeHtml(category)}
-  </div>
+  ${getCategoryIcon(category)}
+  ${escapeHtml(category)}
+</div>
   <div class="monthly-category-amount">
     ${yen(total)}
   </div>
@@ -1767,16 +1767,11 @@ function renderExpenseChart(){
      カテゴリー
   ========================= */
 
-  const categories = {
+const categories = {};
 
-    "食費":0,
-    "交通費":0,
-    "買い物":0,
-    "娯楽":0,
-    "通信費":0,
-    "その他":0
-
-  };
+data.categories.forEach(category => {
+  categories[category] = 0;
+});
 
 
   /* =========================
@@ -2669,6 +2664,10 @@ if(!Array.isArray(data.expenses)){
 
 if(!Array.isArray(data.fixedExpenses)){
   data.fixedExpenses=[];
+}
+
+if(!Array.isArray(data.categories)){
+  data.categories = [...defaultCategories];
 }
 
 saveData();
