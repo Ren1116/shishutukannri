@@ -1462,7 +1462,11 @@ function renderMonthlySummary(){
   const month =
     document.getElementById("monthSelect").value;
 
-  /* 月別の収入 */
+
+  /* =========================
+     月別の収入
+  ========================= */
+
   const monthlyIncome =
     data.incomes
       .filter(item => item.date.startsWith(month))
@@ -1470,24 +1474,67 @@ function renderMonthlySummary(){
         return sum + Number(item.amount);
       },0);
 
-  /* 月別の支出 */
-  const monthlyExpense =
+
+  /* =========================
+     通常の支出
+  ========================= */
+
+  const normalExpense =
     data.expenses
       .filter(item => item.date.startsWith(month))
       .reduce((sum,item) => {
         return sum + Number(item.amount);
       },0);
 
-  /* 収支 */
+
+  /* =========================
+     固定費
+     ・ONのものだけ
+     ・開始月以降だけ
+  ========================= */
+
+  const activeFixedExpenses =
+    data.fixedExpenses.filter(item => {
+
+      return item.active !== false &&
+             item.startMonth <= month;
+
+    });
+
+
+  const fixedExpense =
+    activeFixedExpenses
+      .reduce((sum,item) => {
+        return sum + Number(item.amount);
+      },0);
+
+
+  /* =========================
+     支出合計
+  ========================= */
+
+  const monthlyExpense =
+    normalExpense + fixedExpense;
+
+
+  /* =========================
+     収支
+  ========================= */
+
   const monthlyBalance =
     monthlyIncome - monthlyExpense;
 
-  /* 表示 */
+
+  /* =========================
+     表示
+  ========================= */
+
   document.getElementById("monthlyIncome").textContent =
     yen(monthlyIncome);
 
   document.getElementById("monthlyExpense").textContent =
     yen(monthlyExpense);
+
 
   const balanceElement =
     document.getElementById("monthlyBalance");
@@ -1495,43 +1542,79 @@ function renderMonthlySummary(){
   balanceElement.textContent =
     yen(monthlyBalance);
 
+
   /* 収支の色 */
+
   if(monthlyBalance >= 0){
-    balanceElement.style.color = "var(--income)";
+
+    balanceElement.style.color =
+      "var(--income)";
+
   }else{
-    balanceElement.style.color = "var(--expense)";
+
+    balanceElement.style.color =
+      "var(--expense)";
+
   }
+
 
   /* =========================
      カテゴリー別支出
   ========================= */
 
   const categories = {
+
     "食費":0,
     "交通費":0,
     "買い物":0,
     "娯楽":0,
     "通信費":0,
     "その他":0
+
   };
+
+
+  /* 通常の支出を追加 */
 
   data.expenses
     .filter(item => item.date.startsWith(month))
     .forEach(item => {
 
       if(categories[item.category] !== undefined){
-        categories[item.category] += Number(item.amount);
+
+        categories[item.category] +=
+          Number(item.amount);
+
       }
 
     });
+
+
+  /* 固定費を追加 */
+
+  activeFixedExpenses.forEach(item => {
+
+    if(categories[item.category] !== undefined){
+
+      categories[item.category] +=
+        Number(item.amount);
+
+    }
+
+  });
+
+
+  /* 金額の大きい順 */
 
   const sortedCategories =
     Object.entries(categories)
       .filter(([category,amount]) => amount > 0)
       .sort((a,b) => b[1] - a[1]);
 
+
   const container =
     document.getElementById("monthlyCategorySummary");
+
 
   if(sortedCategories.length === 0){
 
@@ -1543,6 +1626,7 @@ function renderMonthlySummary(){
 
     return;
   }
+
 
   container.innerHTML = `
 
@@ -1568,6 +1652,7 @@ function renderMonthlySummary(){
     </div>
 
   `;
+
 }
   
 /* =========================
